@@ -1,0 +1,105 @@
+---
+title: "Regional Fluctuation Amplitude"
+author: "Valerie Jill Sydnor"
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    theme: lumen
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ciftiTools)
+ciftiTools.setOption('wb_path', '/Users/valeriesydnor/Software/workbench/')
+library(gifti)
+library(cifti)
+```
+
+# Read in Data
+
+List of RBC-PNC participants with resting state fMRI data
+```{r}
+#list of RBC ids with processed, non-variant resting state fMRI data: ses-PNC1_task-rest_acq-singleband_space-fsLR_den-91k, N = 1374
+participants <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/sample_info/PNC/PNC_timeseries_processed.txt", header=F) 
+colnames(participants) <- c("rbcid") 
+```
+
+Surface-related files
+```{r}
+medialwall.mask.leftcortex <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/medialwall.mask.leftcortex.csv", header = F, colClasses = c("logical")) #left cortex medial wall mask
+medialwall.mask.rightcortex <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/medialwall.mask.rightcortex.csv", header = F, colClasses = c("logical")) #right cortex medial wall mask
+
+glasser.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360_regionlist.csv", header = T) #glasser parcel names in order of surface data
+schaefer.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/schaefer400_regionlist.csv", header = T) #schaefer parcel names in order of surface data
+```
+
+# Parcellate Vertex-wise Fluctuation Amplitude Maps
+
+```{r}
+regional_fluctuation_amplitude <- function(rbcid){
+  
+  #Mean fluctuation amplitude in Glasser360 parcels
+  if(!file.exists(sprintf("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_fsLR_alff_glasser360.pscalar.nii", rbcid))){
+  command2 = sprintf("-cifti-parcellate /cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_ses-PNC1_task-rest_acq-singleband_space-fsLR_den-91k_desc-alff_den-91k_bold.dtseries.nii /cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser_space-fsLR_den-32k_desc-atlas.dlabel.nii COLUMN /cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_fsLR_alff_glasser360.pscalar.nii", rbcid)
+  ciftiTools::run_wb_cmd(command2, intern = FALSE, ignore.stdout = NULL, ignore.stderr = NULL)}
+  
+  #Mean fluctuation amplitude in Schaefer400 parcels
+  if(!file.exists(sprintf("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_fsLR_alff_schaefer400.pscalar.nii", rbcid))){
+  command1 = sprintf("-cifti-parcellate /cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_ses-PNC1_task-rest_acq-singleband_space-fsLR_den-91k_desc-alff_den-91k_bold.dtseries.nii /cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/Schaefer2018_400Parcels_17Networks_order.dlabel.nii COLUMN /cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_fsLR_alff_schaefer400.pscalar.nii", rbcid)
+  ciftiTools::run_wb_cmd(command1, intern = FALSE, ignore.stdout = NULL, ignore.stderr = NULL)}
+
+}
+```
+
+```{r, echo=T, eval=T, warning=F, message=F}
+for(sub in c(1:nrow(participants))){
+  rbcid <- participants[sub,1]
+  regional_fluctuation_amplitude(rbcid)
+}
+```
+
+# Create Participant x Region Fluctuation Amplitude Spreadsheets
+
+```{r, echo=T, eval=T}
+subxparcel_matrix <- function(rbcid, atlas){
+  
+  cifti.data <- read_cifti(sprintf("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/%1$s/%1$s_fsLR_alff_%2$s.pscalar.nii", rbcid, atlas))
+  parcel.data <- cifti.data$data
+  return(parcel.data)
+  
+  rm(cifti.data)
+}
+```
+
+```{r, echo=T, eval=T, warning=F, message=F}
+subxparcel.matrix.glasser <- matrix(data = NA, nrow = nrow(participants), ncol = 361)
+regionheaders <- glasser.parcel.labels$label
+demoheaders <- c("rbcid")
+colheaders <- as.matrix(c(demoheaders,regionheaders))
+colnames(subxparcel.matrix.glasser) <- colheaders
+
+subxparcel.matrix.schaefer <- matrix(data = NA, nrow = nrow(participants), ncol = 401)
+regionheaders <- schaefer.parcel.labels$label
+demoheaders <- c("rbcid")
+colheaders <- as.matrix(c(demoheaders,regionheaders))
+colnames(subxparcel.matrix.schaefer) <- colheaders
+
+for(sub in c(1:nrow(participants))){
+  rbcid=participants[sub,1]
+  
+  rbcid.data <- subxparcel_matrix(rbcid, "glasser360") #get glasser360 regional fluctuation amplitude for this participant
+  subxparcel.matrix.glasser[sub,] <- cbind(rbcid, t(rbcid.data)) #add data to study spreadsheet
+  
+  rbcid.data <- subxparcel_matrix(rbcid, "schaefer400") #get schaefer400 regional fluctuation amplitude for this participant
+  subxparcel.matrix.schaefer[sub,] <- cbind(rbcid, t(rbcid.data)) #add data to study spreadsheet
+  
+}
+```
+```{r, echo=T, eval=T}
+write.csv(subxparcel.matrix.glasser, file = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/fluctuationamplitude_subxregion_glasser360.csv", row.names = F, quote = F)
+write.csv(subxparcel.matrix.schaefer, file = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/fluctuationamplitude_subxregion_schaefer400.csv", row.names = F, quote = F)
+```
