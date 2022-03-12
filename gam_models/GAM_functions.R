@@ -232,7 +232,7 @@ gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, c
   if(return_draws == TRUE)
     return(predicted.smooth.values)
   if(return_draws == FALSE)
-    smooth.features <- list(region, max.y, max.y.CI.lower, max.y.CI.upper, min.y, min.y.CI.lower, min.y.CI.upper)
+    smooth.features <- list(parcel, max.y, max.y.CI.lower, max.y.CI.upper, min.y, min.y.CI.lower, min.y.CI.upper)
     names(smooth.features) <- c("parcel", sprintf("%s at max y", smooth_var), "max y credible interval lower", "max y credible interval upper", sprintf("%s at min y", smooth_var), "min y credible interval lower", "min y credible interval upper")
     return(smooth.features)
 }
