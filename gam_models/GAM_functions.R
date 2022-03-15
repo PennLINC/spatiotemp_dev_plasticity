@@ -237,9 +237,9 @@ gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, c
     return(smooth.features)
 }
 
-#POSTERIOR DISTRIBUTION DERIVATIVES FUNCTION
+#DERIVATIVES FUNCTION
 ##Function to compute smooth derivatives for a main GAM model and for individual draws from the simulated posterior distribution
-gam.posterior.derivatives <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, draws, increments, return_posterior_derivatives = TRUE){
+gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, draws, increments, return_posterior_derivatives = TRUE){
   
 #Set parameters
   npd <- as.numeric(draws) #number of draws from the posterior distribution; number of posterior derivative sets estimated
@@ -285,6 +285,10 @@ gam.posterior.derivatives <- function(measure, atlas, dataset, region, smooth_va
   
 #Estimate smooth derivatives
   derivs <- derivatives(gam.model, term = sprintf('s(%s)',smooth_var), interval = "simultaneous", unconditional = UNCONDITIONAL) #derivative at 200 indices of smooth_var with a simultaneous CI
+  derivs.fulldf <- derivs %>% select(data, derivative, se, lower, upper)
+  derivs.fulldf <- derivs.fulldf %>% mutate(significant = !(0 > lower & 0 < upper))
+  derivs.fulldf$significant.derivative = derivs.fulldf$derivative*derivs.fulldf$significant
+  colnames(derivs.fulldf) <- c(sprintf("%s", smooth_var), "derivative", "se", "lower", "upper", "significant", "significant.derivative")
   derivs <- derivs %>% select(data, derivative)
   colnames(derivs) <- c(sprintf("%s", smooth_var), "derivative")
   derivs[,smooth_var] <- round(derivs[,smooth_var], 3)
@@ -304,7 +308,7 @@ gam.posterior.derivatives <- function(measure, atlas, dataset, region, smooth_va
   posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)
   
   if(return_posterior_derivatives == FALSE)
-    return(derivs)
+    return(derivs.fulldf)
   if(return_posterior_derivatives == TRUE)
     posterior.derivs <- merge(derivs, posterior.derivs, by="age")
     return(posterior.derivs)
