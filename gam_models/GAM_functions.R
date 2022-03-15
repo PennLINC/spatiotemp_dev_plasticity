@@ -158,7 +158,6 @@ gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, c
   np <- as.numeric(increments) #number of smooth_var increments to predict fit at from posterior model coefficients
   EPS <- 1e-07 #finite differences
   UNCONDITIONAL <- FALSE #should we account for uncertainty when estimating smoothness parameters?
-  set.seed(10)
 
 #Fit the gam
   dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
@@ -246,8 +245,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   np <- as.numeric(increments) #number of smooth_var increments to get derivatives at
   EPS <- 1e-07 #finite differences
   UNCONDITIONAL <- FALSE #should we account for uncertainty when estimating smoothness parameters?
-  set.seed(10)
-  
+
 #Fit the gam
   dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
   gam.data <- get(dataname)
@@ -311,7 +309,6 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   if(return_posterior_derivatives == FALSE)
     return(derivs.fulldf)
   if(return_posterior_derivatives == TRUE)
-    posterior.derivs <- merge(derivs, posterior.derivs, by="age")
     return(posterior.derivs)
 }
   
