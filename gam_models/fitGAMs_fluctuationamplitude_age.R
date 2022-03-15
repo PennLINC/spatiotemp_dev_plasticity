@@ -162,17 +162,51 @@ write.csv(gam.peaks.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/Fluctua
 ## Region-wise Developmental Derivatives
 
 np <- 200 #number of predictions
+npd <- 1 #not drawing from the posterior here
+gam.derivatives.glasser <- matrix(data=NA, ncol=9) 
+colnames(gam.derivatives.glasser) <- c("age","derivative","se","lower","upper","significant","significant.derivative","index","label")
+
+for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
+  region <- glasser.parcel.labels$label[row] 
+  GAM.DERIVATIVES <- gam.derivatives(measure = "fluctuations", atlas = "glasser", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = FALSE) #run the gam.derivatives function
+  GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
+  GAM.DERIVATIVES$label <- as.character(rep(x=region, np)) #region label
+  gam.derivatives.glasser <- rbind(gam.derivatives.glasser, GAM.DERIVATIVES)
+}
+
+gam.derivatives.glasser <- gam.derivatives.glasser[-1,] #remove empty initialization row
+write.csv(gam.derivatives.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_glasser.csv", row.names = F, quote = F)
+
+
+np <- 200 #number of predictions
+npd <- 1 #not drawing from the posterior here
+gam.derivatives.schaefer<- matrix(data=NA, ncol=9) 
+colnames(gam.derivatives.schaefer) <- c("age","derivative","se","lower","upper","significant","significant.derivative","index","label")
+
+for(row in c(1:nrow(schaefer.parcel.labels))){ #for each glasser region
+  region <- schaefer.parcel.labels$label[row] 
+  GAM.DERIVATIVES <- gam.derivatives(measure = "fluctuations", atlas = "schaefer", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = FALSE) #run the gam.derivatives function
+  GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
+  GAM.DERIVATIVES$label <- as.character(rep(x=region, np)) #region label
+  gam.derivatives.schaefer <- rbind(gam.derivatives.schaefer, GAM.DERIVATIVES)
+}
+
+gam.derivatives.schaefer <- gam.derivatives.schaefer[-1,] #remove empty initialization row
+write.csv(gam.derivatives.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_schaefer.csv", row.names = F, quote = F)
+
+### Region-wise Posterior Smooth Derivatives
+
+np <- 200 #number of predictions
 npd <- 10000 #number of posterior draws
-gam.derivatives.glasser <- matrix(data=NA, ncol=(npd+4)) #empty matrix to save gam.posterior.derivatives output to
+gam.derivatives.glasser <- matrix(data=NA, ncol=(npd+4)) #empty matrix to save gam.derivatives output to
 drawnames <- sprintf("draw%s",seq(from = 1, to = npd))
 varnames <- c("label","index","age", "derivative")
 colheaders <- as.matrix(c(varnames,drawnames))
 colnames(gam.derivatives.glasser) <- colheaders
 
 for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
-  
   region <- glasser.parcel.labels$label[row] 
-  GAM.DERIVATIVES <- gam.posterior.derivatives(measure = "fluctuations", atlas = "glasser", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = TRUE) #run the gam.posterior.derivatives function
+  GAM.DERIVATIVES <- gam.derivatives(measure = "fluctuations", atlas = "glasser", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = TRUE) #run the gam.derivatives function
   GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
   GAM.DERIVATIVES$label <- as.character(rep(x=region, np)) #region label
   GAM.DERIVATIVES <- GAM.DERIVATIVES %>% select(label, index, age, derivative, everything())
@@ -180,7 +214,7 @@ for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
 }
 
 gam.derivatives.glasser <- gam.derivatives.glasser[-1,] #remove empty initialization row
-write.csv(gam.derivatives.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_glasser.csv", row.names = F, quote = F)
+write.csv(gam.derivatives.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_posteriorderivatives_glasser.csv", row.names = F, quote = F)
 
 
 np <- 200 #number of predictions
@@ -192,9 +226,8 @@ colheaders <- as.matrix(c(varnames,drawnames))
 colnames(gam.derivatives.schaefer) <- colheaders
 
 for(row in c(1:nrow(schaefer.parcel.labels))){ #for each schaefer region
-  
   region <- schaefer.parcel.labels$label[row] 
-  GAM.DERIVATIVES <- gam.posterior.derivatives(measure = "fluctuations", atlas = "schaefer", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = TRUE) #run the gam.posterior.derivatives function
+  GAM.DERIVATIVES <- gam.derivatives(measure = "fluctuations", atlas = "schaefer", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = TRUE) #run the gam.derivatives function
 GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
   GAM.DERIVATIVES$label <- as.character(rep(x=region, np)) #region label
   GAM.DERIVATIVES <- GAM.DERIVATIVES %>% select(label, index, age, derivative, everything())
@@ -202,4 +235,4 @@ GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
 }
 
 gam.derivatives.schaefer <- gam.derivatives.schaefer[-1,] #remove empty initialization row
-write.csv(gam.derivatives.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_schaefer.csv", row.names = F, quote = F)
+write.csv(gam.derivatives.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_posteriorderivatives_schaefer.csv", row.names = F, quote = F)
