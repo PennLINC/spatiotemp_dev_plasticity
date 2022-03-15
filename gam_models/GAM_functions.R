@@ -295,6 +295,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   derivs <- as.data.frame(derivs)
   
 #Estimate posterior smooth derivatives from simulated GAM posterior distribution
+  if(return_posterior_derivatives == TRUE){
   Vb <- vcov(gam.model, unconditional = UNCONDITIONAL) #variance-covariance matrix for all the fitted model parameters (intercept, covariates, and splines)
   sims <- MASS::mvrnorm(npd, mu = coef(gam.model), Sigma = Vb) #simulate model parameters (coefficents) from the posterior distribution of the smooth based on actual model coefficients and covariance. 
   X0 <- predict(gam.model, newdata = pred, type = "lpmatrix") #get matrix of linear predictors for pred
@@ -305,7 +306,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   colnames(posterior.derivs) <- sprintf("draw%s",seq(from = 1, to = npd)) #label the draws
   posterior.derivs <- cbind(as.numeric(pred[,smooth_var]), posterior.derivs) #add smooth_var increments from pred df to first column
   colnames(posterior.derivs)[1] <- sprintf("%s", smooth_var) #label the smooth_var column
-  posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)
+  posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)}
   
   if(return_posterior_derivatives == FALSE)
     return(derivs.fulldf)
