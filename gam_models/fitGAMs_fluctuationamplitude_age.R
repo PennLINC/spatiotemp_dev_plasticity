@@ -1,6 +1,7 @@
-#Model Fitting: Age-Dependent Changes in Regional Fluctuation Amplitude
+# MODEL FITTING: AGE DEPENDENT CHANGES IN REGIONAL FLUCTUATION AMPLITUDE
 
 library(dplyr)
+library(cifti)
 source("/cbica/projects/spatiotemp_dev_plasticity/code/spatiotemp_dev_plasticity/gam_models/GAM_functions.R")
 
 # Prepare Fluctuation Amplitude, Demographics, and fMRI Motion data frame for GAMs
@@ -23,6 +24,8 @@ write.csv(fluctuations.schaefer.pnc, "/cbica/projects/spatiotemp_dev_plasticity/
 
 glasser.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360_regionlist.csv", header = T) #glasser parcel names in order of surface data
 schaefer.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/schaefer400_regionlist.csv", header = T) #schaefer parcel names in order of surface data
+
+###################################################################################################
 
 # Fit GAM Models (Age Effects)
 
@@ -55,6 +58,7 @@ cols = c(2:10)
 gam.age.schaefer[,cols] = apply(gam.age.schaefer[,cols], 2, function(x) as.numeric(as.character(x)))
 write.csv(gam.age.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_statistics_schaefer.csv", row.names = F, quote = F)
 
+###################################################################################################
 
 ## Region-wise GAM Smooth Predictions
 
@@ -113,6 +117,7 @@ gam.peaks.schaefer$age.peak <- as.numeric(gam.peaks.schaefer$age.peak)
 write.csv(gam.smooths.schaefer,"/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_predictedsmooths_schaefer.csv", row.names = F, quote = F) 
 write.csv(gam.peaks.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_peaks_schaefer.csv", row.names = F, quote = F)
 
+###################################################################################################
 
 ### GAM Smooth Predictions: Age of Peak Fluctuation Amplitude Credible Intervals
 
@@ -158,6 +163,7 @@ cols = c(2:4)
 gam.peaks.schaefer[,cols] = apply(gam.peaks.schaefer[,cols], 2, function(x) as.numeric(as.character(x)))
 write.csv(gam.peaks.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_peaks_schaefer.csv", row.names = F, quote = F)
 
+###################################################################################################
 
 ## Region-wise Developmental Derivatives
 
@@ -194,45 +200,81 @@ for(row in c(1:nrow(schaefer.parcel.labels))){ #for each glasser region
 gam.derivatives.schaefer <- gam.derivatives.schaefer[-1,] #remove empty initialization row
 write.csv(gam.derivatives.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_schaefer.csv", row.names = F, quote = F)
 
-### Region-wise Posterior Smooth Derivatives
+###################################################################################################
+
+### Region-wise Posterior Smooth Derivatives Correlation with Sensorimotor-Association Axis
 
 np <- 200 #number of predictions
 npd <- 10000 #number of posterior draws
-gam.derivatives.glasser <- matrix(data=NA, ncol=(npd+4)) #empty matrix to save gam.derivatives output to
-drawnames <- sprintf("draw%s",seq(from = 1, to = npd))
-varnames <- c("label","index","age", "derivative")
-colheaders <- as.matrix(c(varnames,drawnames))
-colnames(gam.derivatives.glasser) <- colheaders
+gam.derivatives.glasser <- matrix(data=NA, ncol=5) #empty matrix to save gam.derivatives output to
+colnames(gam.derivatives.glasser) <- c("label", "index", "age", "draw", "posterior.derivative")
 
 for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
   region <- glasser.parcel.labels$label[row] 
   GAM.DERIVATIVES <- gam.derivatives(measure = "fluctuations", atlas = "glasser", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = TRUE) #run the gam.derivatives function
-  GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
-  GAM.DERIVATIVES$label <- as.character(rep(x=region, np)) #region label
-  GAM.DERIVATIVES <- GAM.DERIVATIVES %>% select(label, index, age, derivative, everything())
+  GAM.DERIVATIVES$index <- as.numeric(rep(x=row, (np*npd))) #region index
+  GAM.DERIVATIVES$label <- as.character(rep(x=region, (np*npd))) #region label
+  GAM.DERIVATIVES <- GAM.DERIVATIVES %>% select(label, index, age, draw, posterior.derivative)
   gam.derivatives.glasser <- rbind(gam.derivatives.glasser, GAM.DERIVATIVES)
 }
 
 gam.derivatives.glasser <- gam.derivatives.glasser[-1,] #remove empty initialization row
-write.csv(gam.derivatives.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_posteriorderivatives_glasser.csv", row.names = F, quote = F)
+
+# Compute and save correlations with S-A axis
+S.A.axis.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Glasser360.pscalar.nii") #S-A_ArchetypalAxis repo
+S.A.axis <- as.data.frame(cbind(rank(S.A.axis.cifti$data), names(S.A.axis.cifti$Parcel)))
+colnames(S.A.axis) <- c("SA.axis","orig_parcelname")
+S.A.axis <- merge(S.A.axis, glasser.parcel.labels, by="orig_parcelname", sort = F)
+rm(S.A.axis.cifti)
+
+SNR.mask <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/SNRmask_glasser360.csv")
+
+gam.derivatives.glasser <- merge(S.A.axis, gam.derivatives.glasser, by="label", sort=F) #assign axis rank to each label
+gam.derivatives.glasser <- merge(SNR.mask, gam.derivatives.glasser, by="label", sort=F) 
+gam.derivatives.glasser <- gam.derivatives.glasser %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
+
+corr_values <- gam.derivatives.glasser %>%
+  group_by(draw,age) %>%
+  do(SAcorrelation = cor(as.numeric(.$SA.axis), as.numeric(.$posterior.derivative))) %>%
+  unnest(cols = c(SAcorrelation))
+
+corr_values.wide <- corr_values %>% pivot_wider(names_from = "draw", values_from = "SAcorrelation")
+write.csv(corr_values.wide, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_glasser.csv", row=F, quote=F)
 
 
 np <- 200 #number of predictions
 npd <- 10000 #number of posterior draws
-gam.derivatives.schaefer <- matrix(data=NA, ncol=(npd+4)) 
-drawnames <- sprintf("draw%s",seq(from = 1, to = npd))
-varnames <- c("label","index","age", "derivative")
-colheaders <- as.matrix(c(varnames,drawnames))
-colnames(gam.derivatives.schaefer) <- colheaders
+gam.derivatives.schaefer <- matrix(data=NA, ncol=5) #empty matrix to save gam.derivatives output to
+colnames(gam.derivatives.schaefer) <- c("label", "index", "age", "draw", "posterior.derivative")
 
-for(row in c(1:nrow(schaefer.parcel.labels))){ #for each schaefer region
+for(row in c(1:nrow(schaefer.parcel.labels))){ #for each glasser region
   region <- schaefer.parcel.labels$label[row] 
   GAM.DERIVATIVES <- gam.derivatives(measure = "fluctuations", atlas = "schaefer", dataset = "pnc", region = region, smooth_var = "age", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, draws = npd, increments = np, return_posterior_derivatives = TRUE) #run the gam.derivatives function
-GAM.DERIVATIVES$index <- as.numeric(rep(x=row, np)) #region index
-  GAM.DERIVATIVES$label <- as.character(rep(x=region, np)) #region label
-  GAM.DERIVATIVES <- GAM.DERIVATIVES %>% select(label, index, age, derivative, everything())
+  GAM.DERIVATIVES$index <- as.numeric(rep(x=row, (np*npd))) #region index
+  GAM.DERIVATIVES$label <- as.character(rep(x=region, (np*npd))) #region label
+  GAM.DERIVATIVES <- GAM.DERIVATIVES %>% select(label, index, age, draw, posterior.derivative)
   gam.derivatives.schaefer <- rbind(gam.derivatives.schaefer, GAM.DERIVATIVES)
 }
 
 gam.derivatives.schaefer <- gam.derivatives.schaefer[-1,] #remove empty initialization row
-write.csv(gam.derivatives.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_posteriorderivatives_schaefer.csv", row.names = F, quote = F)
+
+# Compute and save correlations with S-A axis
+S.A.axis.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Schaefer400.17Networks.pscalar.nii") #S-A_ArchetypalAxis repo
+S.A.axis <- as.data.frame(cbind(rank(S.A.axis.cifti$data), names(S.A.axis.cifti$Parcel)))
+colnames(S.A.axis) <- c("SA.axis","orig_parcelname")
+S.A.axis$label <- schaefer.parcel.labels$label
+rm(S.A.axis.cifti)
+
+SNR.mask <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/SNRmask_schaefer400.csv")
+
+gam.derivatives.schaefer <- merge(S.A.axis, gam.derivatives.schaefer, by="label", sort=F) #assign axis rank to each label
+gam.derivatives.schaefer <- merge(SNR.mask, gam.derivatives.schaefer, by="label", sort=F) 
+gam.derivatives.schaefer <- gam.derivatives.schaefer %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
+
+corr_values <- gam.derivatives.schaefer %>%
+  group_by(draw,age) %>%
+  do(SAcorrelation = cor(as.numeric(.$SA.axis), as.numeric(.$posterior.derivative))) %>%
+  unnest(cols = c(SAcorrelation))
+
+corr_values.wide <- corr_values %>% pivot_wider(names_from = "draw", values_from = "SAcorrelation")
+write.csv(corr_values.wide, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_schaefer.csv", row=F, quote=F)
