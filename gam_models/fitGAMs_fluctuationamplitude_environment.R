@@ -29,14 +29,14 @@ gam.env.glasser[,cols] = apply(gam.env.glasser[,cols], 2, function(x) as.numeric
 
 ## Controlling for age, sex, motion, and parental education
 
-fluctuations.glasser.subset <- fluctuations.glasser.pnc %>% filter(medu1 != "NA")
-fluctuations.glasser.subset <- fluctuations.glasser.pnc %>% filter(fedu1 != "NA")
+fluctuations.glasser.pnc$parental.education <- fluctuations.glasser.pnc %>% select(medu1, fedu1) %>% rowMeans(na.rm = TRUE) #mean parental education measure
+fluctuations.glasser.subset <- fluctuations.glasser.pnc %>% filter(parental.education != "NaN") #remove 7 participants without mother or father education data
 
 gam.env.edu.glasser <- matrix(data=NA, nrow=360, ncol=5) #matrix to save gam.fit.covariate output to
 
 for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
   region <- glasser.parcel.labels$label[row] 
-  GAM.RESULTS <- gam.fit.covariate(measure = "fluctuations", atlas = "glasser", dataset = "subset", region = region, smooth_var = "age", covariate.interest = "envSES", covariates.noninterest = "sex + RMSmotion + medu1 + fedu1", knots = 3, set_fx = TRUE) #run the gam.fit.covariate function
+  GAM.RESULTS <- gam.fit.covariate(measure = "fluctuations", atlas = "glasser", dataset = "subset", region = region, smooth_var = "age", covariate.interest = "envSES", covariates.noninterest = "sex + RMSmotion + parental.education", knots = 3, set_fx = TRUE) #run the gam.fit.covariate function
   gam.env.edu.glasser[row,] <- GAM.RESULTS} #and append results to output df 
 
 gam.env.edu.glasser <- as.data.frame(gam.env.edu.glasser)
