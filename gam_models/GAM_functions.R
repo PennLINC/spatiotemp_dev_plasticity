@@ -350,11 +350,12 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   posterior.derivs <- cbind(as.numeric(pred[,smooth_var]), posterior.derivs) #add smooth_var increments from pred df to first column
   colnames(posterior.derivs)[1] <- sprintf("%s", smooth_var) #label the smooth_var column
   posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)}
+  posterior.derivs.long <- posterior.derivs %>% pivot_longer(contains("draw"), names_to = "draw",values_to = "posterior.derivative") #np*npd rows, 3 columns (smooth_var, draw, posterior.derivative)
   
   if(return_posterior_derivatives == FALSE)
     return(derivs.fulldf)
   if(return_posterior_derivatives == TRUE)
-    return(posterior.derivs)
+    return(posterior.derivs.long)
 }
   
 #FIT GAM SMOOTH WITH A COVARIATE OF INTEREST FUNCTION
