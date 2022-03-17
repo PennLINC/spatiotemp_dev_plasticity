@@ -43,7 +43,8 @@ colnames(gam.age.glasser) <- c("label","GAM.age.Fvalue","GAM.age.pvalue","GAM.ag
 cols = c(2:10)    
 gam.age.glasser[,cols] = apply(gam.age.glasser[,cols], 2, function(x) as.numeric(as.character(x))) #format as numeric
 write.csv(gam.age.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_statistics_glasser.csv", row.names = F, quote = F)
-
+rm(gam.age.glasser)
+gc()
 
 gam.age.schaefer <- matrix(data=NA, nrow=400, ncol=10) 
 
@@ -57,6 +58,8 @@ colnames(gam.age.schaefer) <- c("label","GAM.age.Fvalue","GAM.age.pvalue","GAM.a
 cols = c(2:10)    
 gam.age.schaefer[,cols] = apply(gam.age.schaefer[,cols], 2, function(x) as.numeric(as.character(x)))
 write.csv(gam.age.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_statistics_schaefer.csv", row.names = F, quote = F)
+rm(gam.age.schaefer)
+gc()
 
 ###################################################################################################
 
@@ -88,7 +91,8 @@ gam.peaks.glasser$label <- as.character(gam.peaks.glasser$label)
 gam.peaks.glasser$age.peak <- as.numeric(gam.peaks.glasser$age.peak)
 write.csv(gam.smooths.glasser,"/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_predictedsmooths_glasser.csv", row.names = F, quote = F) 
 write.csv(gam.peaks.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_peaks_glasser.csv", row.names = F, quote = F)
-
+rm(gam.smooths.glasser)
+gc()
 
 np <- 200
 gam.smooths.schaefer <- matrix(data=NA, ncol=7) 
@@ -116,6 +120,8 @@ gam.peaks.schaefer$label <- as.character(gam.peaks.schaefer$label)
 gam.peaks.schaefer$age.peak <- as.numeric(gam.peaks.schaefer$age.peak)
 write.csv(gam.smooths.schaefer,"/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_predictedsmooths_schaefer.csv", row.names = F, quote = F) 
 write.csv(gam.peaks.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_peaks_schaefer.csv", row.names = F, quote = F)
+rm(gam.smooths.schaefer)
+gc()
 
 ###################################################################################################
 
@@ -140,7 +146,8 @@ gam.peaks.glasser <- merge(gam.peaks.glasser, posterior.peaks, by="label", sort=
 cols = c(2:4)    
 gam.peaks.glasser[,cols] = apply(gam.peaks.glasser[,cols], 2, function(x) as.numeric(as.character(x)))
 write.csv(gam.peaks.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_peaks_glasser.csv", row.names = F, quote = F)
-
+rm(gam.peaks.glasser)
+gc()
 
 np <- 200 #number of predictions
 npd <- 10000  #number of posterior draws
@@ -162,6 +169,8 @@ gam.peaks.schaefer <- merge(gam.peaks.schaefer, posterior.peaks, by="label", sor
 cols = c(2:4)    
 gam.peaks.schaefer[,cols] = apply(gam.peaks.schaefer[,cols], 2, function(x) as.numeric(as.character(x)))
 write.csv(gam.peaks.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_peaks_schaefer.csv", row.names = F, quote = F)
+rm(gam.peaks.schaefer)
+gc()
 
 ###################################################################################################
 
@@ -182,7 +191,8 @@ for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
 
 gam.derivatives.glasser <- gam.derivatives.glasser[-1,] #remove empty initialization row
 write.csv(gam.derivatives.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_glasser.csv", row.names = F, quote = F)
-
+rm(gam.derivatives.glasser)
+gc()
 
 np <- 200 #number of predictions
 npd <- 1 #not drawing from the posterior here
@@ -199,6 +209,8 @@ for(row in c(1:nrow(schaefer.parcel.labels))){ #for each glasser region
 
 gam.derivatives.schaefer <- gam.derivatives.schaefer[-1,] #remove empty initialization row
 write.csv(gam.derivatives.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_schaefer.csv", row.names = F, quote = F)
+rm(gam.derivatives.schaefer)
+gc()
 
 ###################################################################################################
 
@@ -240,7 +252,8 @@ corr_values <- gam.derivatives.glasser %>%
 
 corr_values.wide <- corr_values %>% pivot_wider(names_from = "draw", values_from = "SAcorrelation")
 write.csv(corr_values.wide, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_glasser.csv", row=F, quote=F)
-
+rm(gam.derivatives.glasser)
+gc()
 
 np <- 200 #number of predictions
 npd <- 10000 #number of posterior draws
@@ -277,4 +290,6 @@ corr_values <- gam.derivatives.schaefer %>%
   unnest(cols = c(SAcorrelation))
 
 corr_values.wide <- corr_values %>% pivot_wider(names_from = "draw", values_from = "SAcorrelation")
-write.csv(corr_values.wide, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_schaefer.csv", row=F, quote=F)
+write.csv(corr_values.wide, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_schaefer.csv")
+rm(gam.derivatives.schaefer)
+gc()
