@@ -34,17 +34,18 @@ RBC PNC-Health Exclude (primary) and LTN (sensitivity)
 ### Cubic Project Directory
 /cbica/projects/spatiotemp_dev_plasticity
 
-> CBF directory: parcel-wise cerebral blood flow maps for each participant, generated with ASLPrep  
-> code directory: directory with the spatiotemp_dev_plasticity github repo  
-> FluctuationAmplitude/PNC directory: vertex-wise and parcel-wise functional amplitude maps for each participant, generated with xcp-d and connectome workbench  
-> FluctuationAmplitude/GAMRESULTS directory: gam model outputs (effect sizes, p-values, fitted values, smooth estimates, smooth characteristics, derivatives)  
-> Maps directory: surface parcellation files and SNR masks (parcellations directory) and S-A axis github repo (S-A_ArchetypalAxis directory)
-> Myelin directory: myelin development maps including the age effect size map (r2), the age of maximal growth map (age of max slope), and the annualized rate of change map (annualized roc) from Baum et al., 2021  
-> sample_info directory: sample demographics, factor scores, rbcid-bblid key, and final project participant list (PNC_FinalSample_N1033.csv)
-> software directory: software used  
-> Structural directory: freesurfer output for each participant  
-> Timeseries directory: vertex-wise and parcel-wise fully processed resting fMRI timeseries data for each participant, generated with fmriprep and xcp-d  
-
+```
+CBF/: parcel-wise cerebral blood flow maps for each participant, generated with ASLPrep  
+code/: directory with the spatiotemp_dev_plasticity github repo  
+FluctuationAmplitude/PNC/: vertex-wise and parcel-wise functional amplitude maps for each participant, generated with xcp-d and connectome workbench  
+FluctuationAmplitude/GAMRESULTS/: gam model outputs (effect sizes, p-values, fitted values, smooth estimates, smooth characteristics, derivatives)  
+Maps/: surface parcellation files and SNR masks (parcellations directory) and S-A axis github repo (S-A_ArchetypalAxis directory)
+Myelin/: myelin development maps including the age effect size map (r2), the age of maximal growth map (age of max slope), and the annualized rate of change map (annualized roc) from Baum et al., 2021  
+sample_info/: sample demographics, factor scores, rbcid-bblid key, and final project participant list (PNC_FinalSample_N1033.csv)
+software/: software used  
+Structural/: freesurfer output for each participant  
+Timeseries/: vertex-wise and parcel-wise fully processed resting fMRI timeseries data for each participant, generated with fmriprep and xcp-d  
+```
 
 
 
