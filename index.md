@@ -1,6 +1,7 @@
 <br>
 <br>
-# Spontaneous Activity Development Unfolds Hierarchically Along the Sensorimotor-Association Axis *Spontaneous activity critically refines cortical circuits in the developing brain. In the rodent brain, spontaneous activity in sensory regions evolves from strong and synchronized to sparse and decorrelated as the cortex transitions from plastic to mature. Synchronized bursts in intrinsic activity are therefore considered a functional hallmark of plastic cortices. Here, we leverage this functional hallmark to characterize the developmental unfolding of activity-indexed plasticity in the human brain during youth. We hypothesized that age-related changes in spontaneous activity would be spatially and temporally governed by the sensorimotor-association (S-A) axis of cortical organization and provide evidence for hierarchical neurodevelopment in childhood and adolescence. Ultimately, elucidating spatially-localized windows of enhanced and diminished cortical plasticity will help to identify windows wherein youth educational and psychiatric interventions may be maximally beneficial.* 
+# Spontaneous Activity Development Unfolds Hierarchically Along the Sensorimotor-Association Axis 
+*Spontaneous activity critically refines cortical circuits in the developing brain. In the rodent brain, spontaneous activity in sensory regions evolves from strong and synchronized to sparse and decorrelated as the cortex transitions from plastic to mature. Synchronized bursts in intrinsic activity are therefore considered a functional hallmark of plastic cortices. Here, we leverage this functional hallmark to characterize the developmental unfolding of activity-indexed plasticity in the human brain during youth. We hypothesized that age-related changes in spontaneous activity would be spatially and temporally governed by the sensorimotor-association (S-A) axis of cortical organization and provide evidence for hierarchical neurodevelopment in childhood and adolescence. Ultimately, elucidating spatially-localized windows of enhanced and diminished cortical plasticity will help to identify windows wherein youth educational and psychiatric interventions may be maximally beneficial.* 
 
 ### Project Lead
 Valerie J. Sydnor
@@ -77,9 +78,8 @@ The final study sample was constructed with [/sample_construction/finalsample.Rm
 > T1 QA exclude: 23 participants with T1-weighted scans that failed visual QC were excluded from the sample  
 > fMRI motion exclude: 179 participants with a mean relative RMS motion value > 0.2 during the resting state fMRI scan were excluded from the sample  
 > Fluctuation amplitude outlier exclude: From the remaining 1052 participants, 19 individuals that had outlier (+- 4 SD from the mean) fluctuation amplitude data in more than 5% of glasser parcels were excluded from the sample  
-
-### Model Fitting 
 <br>
+### Model Fitting 
 
 **GAM Functions**
 To characterize age-dependent changes in spontaneous activity fluctuations across the developing cortex as well as associations between fluctuation amplitude and environmental factors, generalized additive models were fit in each cortical region. GAM models and associated statistics, fitted values, smooths, and derivatives were quantified with the set of functions included in [/gam_models/GAM_functions.R](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/gam_models/GAM_functions.R). This script includes the following functions:
