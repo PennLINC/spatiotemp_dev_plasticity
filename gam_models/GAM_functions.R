@@ -4,7 +4,7 @@ library(gratia)
 library(tidyverse)
 library(dplyr)
 
-#FIT GAM SMOOTH FUNCTION
+#### FIT GAM SMOOTH FUNCTION ####
 ##Function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariates)) per each region in atlas and save out statistics and derivative-based characteristics
 gam.fit.smooth <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, stats_only = FALSE){
   
@@ -99,7 +99,7 @@ gam.fit.smooth <- function(measure, atlas, dataset, region, smooth_var, covariat
     return(full.results)
 }
 
-#PREDICT GAM SMOOTH FUNCTION
+#### PREDICT GAM SMOOTH FITTED VALUES FUNCTION ####
 ##Function to predict fitted values of a measure based on a fitted GAM smooth (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariates)) and a prediction df
 gam.smooth.predict <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, increments){
 
@@ -149,7 +149,7 @@ gam.smooth.predict <- function(measure, atlas, dataset, region, smooth_var, cova
   return(smooth.fit)
 }
 
-#SMOOTH ESTIMATES FUNCTION
+#### CALCULATE SMOOTH ESTIMATES FUNCTION ####
 ##Function to estimate the zero-averaged gam smooth fit 
 gam.estimate.smooth <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, increments){
   
@@ -194,7 +194,7 @@ gam.estimate.smooth <- function(measure, atlas, dataset, region, smooth_var, cov
   return(estimated.smooth)
 }
 
-#POSTERIOR DISTRIBUTION SMOOTHS FUNCTION
+#### POSTERIOR DISTRIBUTION SMOOTHS FUNCTION ####
 ##Function to simulate the posterior distribution from a fitted GAM, calculate smooths for individual posterior draws, and return smooth max and min values + 95% credible intervals
 gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, draws, increments, return_draws = TRUE){
 
@@ -281,7 +281,7 @@ gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, c
     return(smooth.features)
 }
 
-#DERIVATIVES FUNCTION
+#### DERIVATIVES FUNCTION ####
 ##Function to compute smooth derivatives for a main GAM model and for individual draws from the simulated posterior distribution
 gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, draws, increments, return_posterior_derivatives = TRUE){
   
@@ -327,15 +327,11 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   pred2[,smooth_var] <- pred[,smooth_var] + EPS #finite differences
   
 #Estimate smooth derivatives
-  derivs <- derivatives(gam.model, term = sprintf('s(%s)',smooth_var), interval = "simultaneous", unconditional = UNCONDITIONAL) #derivative at 200 indices of smooth_var with a simultaneous CI
+  derivs <- derivatives(gam.model, term = sprintf('s(%s)',smooth_var), interval = "simultaneous", unconditional = UNCONDITIONAL, newdata = pred) #derivative at 200 indices of smooth_var with a simultaneous CI
   derivs.fulldf <- derivs %>% select(data, derivative, se, lower, upper)
   derivs.fulldf <- derivs.fulldf %>% mutate(significant = !(0 > lower & 0 < upper))
   derivs.fulldf$significant.derivative = derivs.fulldf$derivative*derivs.fulldf$significant
   colnames(derivs.fulldf) <- c(sprintf("%s", smooth_var), "derivative", "se", "lower", "upper", "significant", "significant.derivative")
-  derivs <- derivs %>% select(data, derivative)
-  colnames(derivs) <- c(sprintf("%s", smooth_var), "derivative")
-  derivs[,smooth_var] <- round(derivs[,smooth_var], 3)
-  derivs <- as.data.frame(derivs)
   
 #Estimate posterior smooth derivatives from simulated GAM posterior distribution
   if(return_posterior_derivatives == TRUE){
@@ -349,8 +345,11 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   colnames(posterior.derivs) <- sprintf("draw%s",seq(from = 1, to = npd)) #label the draws
   posterior.derivs <- cbind(as.numeric(pred[,smooth_var]), posterior.derivs) #add smooth_var increments from pred df to first column
   colnames(posterior.derivs)[1] <- sprintf("%s", smooth_var) #label the smooth_var column
-  posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)}
-  posterior.derivs.long <- posterior.derivs %>% pivot_longer(contains("draw"), names_to = "draw",values_to = "posterior.derivative") #np*npd rows, 3 columns (smooth_var, draw, posterior.derivative)
+  # posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)
+  posterior.derivs <- cbind(as.character(parcel), posterior.derivs) #add parcel label to first column
+  colnames(posterior.derivs)[1] <- "label" #label the column
+  posterior.derivs.long <- posterior.derivs %>% pivot_longer(contains("draw"), names_to = "draw",values_to = "posterior.derivative")
+  } #np*npd rows, 3 columns (smooth_var, draw, posterior.derivative)
   
   if(return_posterior_derivatives == FALSE)
     return(derivs.fulldf)
@@ -358,7 +357,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
     return(posterior.derivs.long)
 }
   
-#FIT GAM SMOOTH WITH A COVARIATE OF INTEREST FUNCTION
+#### FIT GAM SMOOTH WITH A COVARIATE OF INTEREST FUNCTION ####
 ##Function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariate of interest + control covariates)) and save out statistics for the first covariate
 gam.fit.covariate <- function(measure, atlas, dataset, region, smooth_var, covariate.interest, covariates.noninterest, knots, set_fx = FALSE){
 
