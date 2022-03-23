@@ -32,7 +32,7 @@ RBC PNC-Health Exclude (primary) and LTN (sensitivity)
 > /CBF: parcel-wise cerebral blood flow maps for each participant, generated with ASLPrep  
 > /code: directory with the spatiotemp_dev_plasticity github repo  
 > /FluctuationAmplitude/PNC: vertex-wise and parcel-wise functional amplitude maps for each participant, generated with xcp-d and connectome workbench  
-- /FluctuationAmplitude/GAMRESULTS: gam model outputs (effect sizes, p-values, fitted values, smooth estimates, smooth characteristics, derivatives)  
+> /FluctuationAmplitude/GAMRESULTS: gam model outputs (effect sizes, p-values, fitted values, smooth estimates, smooth characteristics, derivatives)  
 > /Maps : surface parcellation files and SNR masks (parcellations directory) and S-A axis github repo (S-A_ArchetypalAxis directory)
 > /Myelin : myelin development maps including the age effect size map (r2), the age of maximal growth map (age of max slope), and the annualized rate of change map (annualized roc) from Baum et al., 2021  
 > sample_info: sample demographics, factor scores, rbcid-bblid key, and final project participant list (PNC_FinalSample_N1033.csv)
@@ -48,7 +48,7 @@ RBC PNC-Health Exclude (primary) and LTN (sensitivity)
 <br>
 <br>
 # CODE DOCUMENTATION
-The entire analytic workflow implemented in this project is outlined in the following sections with links to the corresponding github code. The workflow includes quantification of regional fluctuation amplitude, PNC sample selection, fitting of generalized additive models (GAMs), and characterization of relationships between fluctuation amplitude, age, environmental variability, and the sensorimotor-association axis.**
+**The entire analytic workflow implemented in this project is outlined in the following sections with links to the corresponding github code. The workflow includes quantification of regional fluctuation amplitude, PNC sample selection, fitting of generalized additive models (GAMs), and characterization of relationships between fluctuation amplitude, age, environmental variability, and the sensorimotor-association axis.**
 <br>
 ### Fluctuation Amplitude Quantification
 Resting state functional MRI data were processed with [fmriprep 20.2.3](https://hub.docker.com/layers/fmriprep/nipreps/fmriprep/20.2.3/images/sha256-102db5fe8b0a34298f2eb2fd5962ad99ff0a948d258cbf08736fcc1b845cad9f?context=explore) and [xcp-d 0.0.4](https://hub.docker.com/layers/xcp_abcd/pennlinc/xcp_abcd/0.0.4/images/sha256-317160b8078cf7978eaf9db6fef32df78864232cb8a8759a354832813d1faf02?context=explore) to quantify fluctuation amplitude at each vertex on the fslr 32k cortical surface. 
