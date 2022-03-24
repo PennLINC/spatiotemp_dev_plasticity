@@ -113,3 +113,14 @@ Model results were examined and studied within our hierarchical neurodevelopment
 - Calculates age smooths for 10 bins of the sensorimotor-association axis
 - Performs a temporal sliding window analysis to uncover when developmental change in fluctuation amplitude is maximally aligned (and not aligned) with the sensorimotor-association axis
 - Examines the significance and distribution of associations between regional fluctuation amplitude and environmental variability, and how environment effects are stratified by the S-A axis
+
+### Sensitivity Analyses
+
+The robustness of our developmental findings was evaluated in a series of sensitivity analyses. Sensitiviy analysis GAMs were fit with sensitivity_analyses/fitGAMs_sensitivityanalyses.R and results were examined in sensitivity_analyses/sensitivity_results.Rmd. The following sensitivity analyses were performed:
+
+- *Low motion*: Findings were assessed in a low motion sample of N = 690 participants with a relative mean RMS < 0.075
+- *Psychiatry exclusions*: Findings were assessed in a sample that excluded participants with current psychotropic medication use or a history of psychiatric hospitalization
+- *CBF controlled*: All fluctuation amplitude models were re-fit while controlling for regional cerebral blood flow (quantified with ASL)
+- *T2 controlled*: All fluctuation amplitude models were re-fit while controlling for regional BOLD signal level (T2*) during the fMRI scan
+- *Normalization*: Developmental analyses were run with mean normalized fluctuation amplitude as the dependent variables
+- *Atlas*: Results were reproduced using the Schaefer 400 atlas
