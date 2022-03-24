@@ -150,7 +150,7 @@ gam.smooth.predict <- function(measure, atlas, dataset, region, smooth_var, cova
 }
 
 #### CALCULATE SMOOTH ESTIMATES FUNCTION ####
-##Function to estimate the zero-averaged gam smooth fit 
+##Function to estimate the zero-averaged gam smooth function 
 gam.estimate.smooth <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, increments){
   
   #Fit the gam
@@ -336,7 +336,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
 #Estimate posterior smooth derivatives from simulated GAM posterior distribution
   if(return_posterior_derivatives == TRUE){
   Vb <- vcov(gam.model, unconditional = UNCONDITIONAL) #variance-covariance matrix for all the fitted model parameters (intercept, covariates, and splines)
-  sims <- MASS::mvrnorm(npd, mu = coef(gam.model), Sigma = Vb) #simulate model parameters (coefficents) from the posterior distribution of the smooth based on actual model coefficients and covariance. 
+  sims <- MASS::mvrnorm(npd, mu = coef(gam.model), Sigma = Vb) #simulate model parameters (coefficents) from the posterior distribution of the smooth based on actual model coefficients and covariance
   X0 <- predict(gam.model, newdata = pred, type = "lpmatrix") #get matrix of linear predictors for pred
   X1 <- predict(gam.model, newdata = pred2, type = "lpmatrix") #get matrix of linear predictors for pred2
   Xp <- (X1 - X0) / EPS 
@@ -345,7 +345,6 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   colnames(posterior.derivs) <- sprintf("draw%s",seq(from = 1, to = npd)) #label the draws
   posterior.derivs <- cbind(as.numeric(pred[,smooth_var]), posterior.derivs) #add smooth_var increments from pred df to first column
   colnames(posterior.derivs)[1] <- sprintf("%s", smooth_var) #label the smooth_var column
-  # posterior.derivs[,smooth_var] <- round(posterior.derivs[,smooth_var], 3)
   posterior.derivs <- cbind(as.character(parcel), posterior.derivs) #add parcel label to first column
   colnames(posterior.derivs)[1] <- "label" #label the column
   posterior.derivs.long <- posterior.derivs %>% pivot_longer(contains("draw"), names_to = "draw",values_to = "posterior.derivative")
