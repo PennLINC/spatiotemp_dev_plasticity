@@ -104,7 +104,7 @@ Models examining associations between fluctuation amplitude and environmental an
 
 ### Data Interpretation and Visualization 
 
-Model results were examined and studied within our hierarchical neurodevelopmental plasticity framework in the R markdown provided in [/developmental_effects/hierarchical_development.Rmd] (https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/developmental_effects/hierarchical_development.Rmd). This script does the following:
+Model results were examined and studied within our hierarchical neurodevelopmental plasticity framework in the R markdown provided in [/developmental_effects/hierarchical_development.Rmd](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/developmental_effects/hierarchical_development.Rmd). This script does the following:
 
 - Generates all manuscript Figures
 - Examines the cortical distribution and significance of associations between regional fluctuation amplitude and age
