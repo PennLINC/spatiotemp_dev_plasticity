@@ -113,6 +113,8 @@ Model results were examined and studied within our hierarchical neurodevelopment
 - Performs a temporal sliding window analysis to uncover when developmental change in fluctuation amplitude is maximally aligned (and not aligned) with the sensorimotor-association axis
 - Examines the significance and distribution of associations between regional fluctuation amplitude and environmental variability, and how environment effects are stratified by the S-A axis
 
+A rendered html of hierarchical_development.Rmd can be viewed [here](https://htmlpreview.github.io/?https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/developmental_effects/hierarchical_development.html)!
+
 ### Sensitivity Analyses
 
 The robustness of our developmental findings was evaluated in a series of sensitivity analyses. Sensitiviy analysis GAMs were fit with sensitivity_analyses/fitGAMs_sensitivityanalyses.R and results were examined in sensitivity_analyses/sensitivity_results.Rmd. The following sensitivity analyses were performed:
