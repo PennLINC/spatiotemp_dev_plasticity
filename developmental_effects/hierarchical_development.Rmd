@@ -5,7 +5,7 @@ output:
   html_document:
     code_folding: show
     highlight: haddock
-    theme: lumen
+    theme: journal
     toc: yes
     toc_depth: 4
     toc_float: yes
@@ -16,7 +16,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-require(ggplot2)
+library(ggplot2)
 library(cifti)
 library(ggseg)
 library(ggsegExtra)
@@ -38,12 +38,12 @@ fluctuations.glasser.pnc <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/
 
 Glasser Labels
 ```{r}
-glasser.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360_regionlist.csv", header = T)
+glasser.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360_regionlist.csv", header = T) #glasser region list
 ```
 
 Sensorimotor-Association Axis
 ```{r, warning=F, message=F}
-S.A.axis.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Glasser360.pscalar.nii") #S-A_ArchetypalAxis repo
+S.A.axis.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Glasser360.pscalar.nii") #S-A_ArchetypalAxis repo, vertex-wise axis average ranks
 S.A.axis <- as.data.frame(cbind(rank(S.A.axis.cifti$data), names(S.A.axis.cifti$Parcel)))
 colnames(S.A.axis) <- c("SA.axis","orig_parcelname")
 S.A.axis <- merge(S.A.axis, glasser.parcel.labels, by="orig_parcelname", sort = F)
@@ -53,8 +53,8 @@ rm(S.A.axis.cifti)
 
 Intracortical Myelination Developmental Data
 ```{r message=FALSE, warning=FALSE}
-myelin.partialR2.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Myelin/hcpd_n628_myelin_sAge_partial_bayes_r2.pscalar.nii")
-myelin.maxdev.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Myelin/hcpd_n628_median_posterior_age_of_max_slope_myelination.pscalar.nii")
+myelin.partialR2.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Myelin/hcpd_n628_myelin_sAge_partial_bayes_r2.pscalar.nii") #T1/T2 ratio - age effect size
+myelin.maxdev.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Myelin/hcpd_n628_median_posterior_age_of_max_slope_myelination.pscalar.nii") #age of maximal T1/T2 ratio increase
 myelin <- as.data.frame(cbind(myelin.partialR2.cifti$data, myelin.maxdev.cifti$data))
 colnames(myelin) <- c("myelin.partialR2","myelin.maxdev")
 myelin$label <- glasser.parcel.labels$label
@@ -76,7 +76,7 @@ perm.id.full <- rotate.parcellation(coord.l = as.matrix(glasser.coords[1:180,]),
 saveRDS(perm.id.full, "/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds")
 ```
 ```{r}
-perm.id.full <- readRDS("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds")
+perm.id.full <- readRDS("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds") #10,000 spatial null spins
 ```
 
 GAM Results
@@ -101,19 +101,19 @@ df.dev$SA.axis.bin <- as.numeric(cut2(df.dev$SA.axis, g=10)) #divide the S-A axi
 
 ```{r}
 gam.fitted.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_predictedfits_glasser.csv") #GAM predicted fits, generated with fitGAMs_fluctuationamplitude_age.R
-gam.fitted.glasser <- merge(gam.fitted.glasser, df.dev, by="label", sort = F)
+gam.fitted.glasser <- inner_join(gam.fitted.glasser, df.dev, by="label", sort = F)
 ```
 
 ```{r}
 gam.smoothestimates.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_smoothestimates_glasser.csv") #GAM smooth estimates, generated with fitGAMs_fluctuationamplitude_age.R
-gam.smoothestimates.glasser <- merge(gam.smoothestimates.glasser, df.dev, by="label", sort = F)
+gam.smoothestimates.glasser <- inner_join(gam.smoothestimates.glasser, df.dev, by="label", sort = F)
 ```
 
 ```{r}
-gam.derivatives.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_glasser.csv")
+gam.derivatives.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_glasser.csv") #GAM true model age smooth derivatives, generated with fitGAMs_fluctuationamplitude_age.R
 gam.derivatives.glasser <- left_join(gam.derivatives.glasser, S.A.axis, by="label", sort = F)
 gam.derivatives.glasser <- left_join(gam.derivatives.glasser, SNR.mask, by="label", sort = F)
-gam.derivatives.glasser <- gam.derivatives.glasser %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
+gam.derivatives.glasser <- gam.derivatives.glasser %>% filter(SNR.mask != 0) 
 ```
 
 ```{r}
@@ -126,6 +126,7 @@ df.env <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list)
 #create df.env.spin formatted for spatial permutation testing
 df.env.spin <- rbind(df.env[181:360,], df.env[1:180,]) #format df as left hemisphere -> right hemisphere for spin tests
 df.env.spin$GAM.env.tvalue[df.env.spin$SNR.mask == 0] <- NA #format data for spin tests by assigning NA to low SNR parcels, treating them like the medial wall
+df.env.spin$GAM.env.edu.tvalue[df.env.spin$SNR.mask == 0] <- NA
 
 df.env <- df.env %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
 ```
@@ -136,7 +137,7 @@ df.env <- df.env %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336
 
 Number of cortical regions showing significant age effects
 ```{r}
-sum(p.adjust(df.dev$Anova.age.pvalue, method=c("fdr")) < 0.05) #FDR-corrected p-values from full versus reduced age models
+sum(p.adjust(df.dev$Anova.age.pvalue, method=c("fdr")) < 0.05) #FDR-corrected p-values from full (+age) versus reduced (-age) models
 ```
 
 Percent of cortical regions showing significant age effects
@@ -162,13 +163,13 @@ ggplot(gam.smoothestimates.glasser.lh,aes(age,est,group=index,color=GAM.age.part
   theme_classic() +
   labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n" ) +
   theme(legend.position = "none") +
-  theme(axis.text = element_text(size=22, family = "Arial", color = c("black")), axis.title = element_text(size=21, family = "Arial", color = c("black"))) +
+  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
 ```
 
-### Region-specific smooths
+### Region-specific developmental trajectories and derivatives
 
-#### V1
+**Region V1**
 
 ```{r}
 V1.smooth <- gam.fitted.glasser %>% filter(label == "rh_R_V1")
@@ -199,7 +200,7 @@ ggplot(data = V1.derivatives) +
           axis.title.x=element_text(size=15, family ="Arial", color = c("black")))
 ```
 
-#### p24pr
+**Region p24pr**
 
 ```{r}
 p24pr.smooth <- gam.fitted.glasser %>%filter(label == "rh_R_p24pr")
@@ -231,7 +232,7 @@ ggplot(data = p24pr.derivatives) +
   
 ```
 
-#### IFSa
+**Region IFSa**
 
 ```{r}
 #rh_R_9m
@@ -264,13 +265,13 @@ ggplot(data = IFSa.derivatives) +
   
 ```
 
-# Spatiotemporal Development of Fluctuation Amplitude Mirrors Intracortical Myelin Growth  
+# Spatiotemporal Development of Fluctuation Amplitude Follows Intracortical Myelin Growth  
 
 ## Spatial development
 
 Fluctuation amplitude age effects map
 ```{r, warning=F, message=F}
-ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked"), hemisphere = "right") + 
+ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked"), hemisphere = c("right")) + 
   theme_void() + 
   labs(fill="Age Effect") +
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish)
@@ -284,7 +285,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.partialR2), pos
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) 
 ```
 
-Correlation between fluctuation amplitude age effects and T1/T2 ratio age effects
+Correlation (rho + p.spin) between fluctuation amplitude age effects and T1/T2 ratio age effects
 ```{r}
 cor.test(df.dev$GAM.age.partialR2, df.dev$myelin.partialR2, method=c("spearman"))
 perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$myelin.partialR2, perm.id.full,corr.type='spearman')
@@ -308,7 +309,7 @@ legend.position = "none")
 
 ## Temporal development
 
-Fluctuation Amplitude Age of Decrease Onset
+Fluctuation amplitude age of decrease onset
 ```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=minage.decrease), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -316,15 +317,15 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=minage.decrease), posi
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(9, 17.5), oob = squish) 
 ```
 
-T1/T2 ratio Age of Maximal Increase
+T1/T2 ratio age of maximal increase
 ```{r}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.maxdev), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  labs(fill="Age Effect") +
+  labs(fill="Age Maximal Increase") +
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10,17.5), oob = squish) 
 ```
 
-Correlation between fluctuation amplitude age decrease onset and T1/T2 ratio max age of increase
+Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and T1/T2 ratio max age of increase
 ```{r}
 #All regions
 cor.test(df.dev$minage.decrease, df.dev$myelin.maxdev, method=c("spearman"))
@@ -338,7 +339,7 @@ perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$myelin.maxd
 ```
 
 Correlation plot
-```{r}
+```{r, message=F, warning=F}
 ggplot(df.dev, aes(x=myelin.maxdev, y=minage.decrease, fill = myelin.maxdev)) + 
 geom_point(color = "white",shape=21, size=3.7) +
 paletteer::scale_fill_paletteer_c("pals::ocean.matter",  direction = -1, limits = c(10,17.5), oob = squish) +
@@ -368,7 +369,7 @@ legend.position = "none")
 
 # Fluctuation Amplitude Development Unfolds along the Hierarchical Sensorimotor-Association Axis
 
-Sensorimotor Association Axis
+Sensorimotor-association axis
 ```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=SA.axis), position = c("stacked")) + 
   theme_void() + 
@@ -378,7 +379,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=SA.axis), position = c
 
 ## Age effects along the S-A Axis
 
-Correlation between fluctuation amplitude age effects and the sensorimotor-association axis
+Correlation (rho + p.spin) between fluctuation amplitude age effects and the sensorimotor-association axis
 ```{r}
 cor.test(df.dev$GAM.age.partialR2, df.dev$SA.axis, method=c("spearman"))
 perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
@@ -392,17 +393,17 @@ scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide =
 labs(x="\nSensorimtor-Association Axis Rank", y="Fluctuation Amplitude Age Effect\n") +
 geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
 theme(
-axis.title.x=element_text(size=24, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=24, family ="Arial", color = c("black")),
+axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
+axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
 axis.line = element_line(color = "black"),
-axis.text=element_text(size=24, family ="Arial", color = c("black")),
+axis.text=element_text(size=15, family ="Arial", color = c("black")),
 panel.background=element_blank(),
 legend.position = "none")
 ```
 
 ## Temporal change along the S-A Axis
 
-Correlation between fluctuation amplitude age of decrease onset and the sensorimotor-association axis
+Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and the sensorimotor-association axis
 ```{r}
 cor.test(df.dev$minage.decrease, df.dev$SA.axis, method=c("spearman"))
 perm.sphere.p(df.dev.spin$minage.decrease, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
@@ -411,7 +412,7 @@ perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$SA.axis, pe
 ```
 
 Correlation plot
-```{r}
+```{r, message=F, warning=F}
 ggplot(df.dev, aes(x=SA.axis, y=minage.decrease, fill = SA.axis)) + 
 geom_point(color = "white",shape=21, size=3.7) +
 scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
@@ -439,11 +440,11 @@ panel.background=element_blank(),
 legend.position = "none")
 ```
 
-S-A axis binned GAM smooths 
+Sensorimotor-association axis binned GAM smooths 
 ```{r}
 gam.smoothestimates.glasser$age <- round(gam.smoothestimates.glasser$age, 3)
 
-meansmooth.bins <- gam.smoothestimates.glasser %>% group_by(age, SA.axis.bin) %>% do(est.mean = mean(.$est)) %>% unnest(cols = c(est.mean)) #calculate the average smooth estimate at each age within each of the 10 bins
+meansmooth.bins <- gam.smoothestimates.glasser %>% group_by(age, SA.axis.bin) %>% do(est.mean = mean(.$est)) %>% unnest(cols = c(est.mean)) #calculate the average smooth estimate at each age within each of the 10 S-A axis bins
 ```
 
 ```{r}
@@ -453,41 +454,41 @@ ggplot(data = meansmooth.bins, aes(x = age, y = est.mean, group = SA.axis.bin, c
   theme_classic() +
   labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n", color = "Sensorimotor-Association Axis Bin") +
   theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
-  theme(legend.position = c(.57, 0.94), legend.direction = "horizontal", legend.text = element_text(size=13), legend.title = element_text(size=12, family = "Arial", color = c("black"))) +
+  theme(legend.position = c(.585, 0.94), legend.direction = "horizontal", legend.text = element_text(size=13), legend.title = element_text(size=12, family = "Arial", color = c("black"))) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
 ```
 
 ## Principal developmental gradient
 
+Principal component analysis to identify the spatial axis that captures the most variance in regional fluctuation amplitude developmental trajectories 
 ```{r}
-gam.estimated.smooths.glasser <- gam.estimated.smooths.glasser %>% select(label, age, est)
+gam.smoothestimates.glasser <- gam.smoothestimates.glasser %>% select(label, age, est)
+gam.smoothestimates.long <- gam.smoothestimates.glasser %>% pivot_wider(names_from="label",values_from="est")
+gam.smoothestimates.long <- gam.smoothestimates.long %>% select(-age) #ages by regions matrix for PCA
 
-gam.estimated.smooths.long <- spread(gam.estimated.smooths.glasser, age, est) #convert long df to wide, rows are regions and columns are age
-gam.estimated.smooths.long <- t(gam.estimated.smooths.long) #transpose such that rows are age and columns are regions
-colnames(gam.estimated.smooths.long) <- gam.estimated.smooths.long[1,] #name columns
-gam.estimated.smooths.long <- gam.estimated.smooths.long[-1,] #200 ages by 360 regions matrix for PCA
-gam.estimated.smooths.long <- as.data.frame(gam.estimated.smooths.long)
-gam.estimated.smooths.long <- sapply(gam.estimated.smooths.long, as.numeric)
+smooths.pca <- prcomp(gam.smoothestimates.long) #PCA
 ```
 
-PCA - variance explained by PC1
+Variance explained by PC1
 ```{r}
-smooths.pca <- prcomp(gam.estimated.smooths.long) 
 summary(smooths.pca)$importance[2,1]
 ```
 
-PCA - correlation with S-A axis
+Developmental PC1 correlation with the sensorimotor-association axis
 ```{r}
-PC1 <- smooths.pca$rotation[,1] #first principal component loadings
-PC1 <- as.data.frame(PC1)
-PC1$label <- row.names(PC1) #create label column
+PC1 <- as.data.frame(smooths.pca$rotation[,1]) #first principal component loadings
+PC1$label <- row.names(PC1) 
+colnames(PC1) <- c("PC1","label")
 PC1$ranked <- rank(PC1$PC1)
 
-PC1 <- left_join(PC1, S.A.axis, by = "label")
-cor.test(PC1$PC1, PC1$SA.axis, method=c("spearman"))
+cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))
+df.dev.spin <- left_join(df.dev.spin, PC1, by="label")
+perm.sphere.p(df.dev.spin$PC1, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
 ```
 
-```{r}
+Correlation plot
+```{r, message=F}
+PC1 <- left_join(PC1, S.A.axis, by="label")
 ggplot(PC1, aes(x=SA.axis, y=PC1, fill = SA.axis)) + 
 geom_point(color = "white",shape=21, size=3.7) +
 scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
@@ -502,18 +503,17 @@ panel.background=element_blank(),
 legend.position = "none")
 ```
 
-PCA - brain map 
+PCA brain map 
 ```{r}
-ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill=PC1), position = c("stacked")) + theme_void() + paletteer::scale_fill_paletteer_c("grDevices::Inferno", limits = c(-.08,.08), oob=squish) + theme(legend.position = "none")
-  
 ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill=PC1), position = c("stacked")) + theme_void() + 
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.055, limits = c(-0.1,0.01), oob = squish) + theme(legend.position = "none")
+scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.055, limits = c(-0.08,0.008), oob = squish) + theme(legend.position = "none")
 ```
 
 # The Neurodevelopmental Hierarchy is Dominant through Adolescence
 
 ## Age-specific fluctuation amplitude derivatives
 
+Regional derivative by age plot
 ```{r}
 gam.derivatives.glasser.lh <- gam.derivatives.glasser[33401:67200,]
 ggplot(gam.derivatives.glasser.lh,aes(age,derivative,group=index,color=SA.axis)) + 
@@ -525,10 +525,13 @@ ggplot(gam.derivatives.glasser.lh,aes(age,derivative,group=index,color=SA.axis))
   theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
 ```
-
-ranked derivatives: age 10
 ```{r}
-age10.derivs <- gam.derivatives.glasser %>% filter(age == 10.030)
+gam.derivatives.glasser$age <- round(gam.derivatives.glasser$age, 5)
+```
+
+Age 10 derivative map
+```{r, warning=F, message=F, error=F}
+age10.derivs <- gam.derivatives.glasser %>% filter(age == 10.03015)
 age10.derivs$derivative <- rank(age10.derivs$derivative)
 ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -536,9 +539,9 @@ ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
 rm(age10.derivs)
 ```
 
-ranked derivatives: age 15
-```{r}
-age15.derivs <- gam.derivatives.glasser %>% filter(age == 15.024)
+Age 15 derivative map
+```{r, warning=F, message=F, error=F}
+age15.derivs <- gam.derivatives.glasser %>% filter(age == 15.02429)
 age15.derivs$derivative <- rank(age15.derivs$derivative)
 ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -546,9 +549,9 @@ ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
 rm(age15.derivs)
 ```
 
-ranked derivatives: age 20
-```{r}
-age20.derivs <- gam.derivatives.glasser %>% filter(age == 20.018)
+Age 20 derivative map
+```{r, warning=F, message=F, error=F}
+age20.derivs <- gam.derivatives.glasser %>% filter(age == 20.01843)
 age20.derivs$derivative <- rank(age20.derivs$derivative)
 ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -556,35 +559,38 @@ ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
 rm(age20.derivs)
 ```
 
-Long derivative plot
+Derivative by sensorimotor-association axis plot
 ```{r}
-ggplot(data=gam.derivatives.glasser,aes(x=age,y=SA.axis,group=index))+
-  geom_line(aes(color=significant.derivative),size=1)+
-  paletteer::scale_color_paletteer_c("grDevices::Inferno", limits=c(-0.03,0.03), oob = squish, direction = -1)+
-  theme_classic()+
-  ylab("Sensorimotor-Association Axis Rank")+
-  xlab("Age")+
-  labs(color="Change per year\n") +
-  theme(axis.text.x = element_text(size = 12, color = c("black"))) +
-  theme(axis.text.y = element_text(size = 12, color = c("black"))) 
+ggplot(data=gam.derivatives.glasser,aes(x = age,y = SA.axis, group = index)) +
+  geom_line(aes(color=derivative), size=1) +
+  #paletteer::scale_color_paletteer_c("grDevices::RdYlBu", direction = -1, limits=c(-0.03,0.03), oob = squish) +
+  paletteer::scale_color_paletteer_c("grDevices::Sunset", direction = -1, limits=c(-0.03,0.03), oob = squish) +
+  #paletteer::scale_color_paletteer_c("grDevices::Inferno", direction = -1, limits=c(-0.03,0.03), oob = squish) +
+  theme_classic() +
+  ylab("Sensorimotor-Association Axis Rank\n") +
+  xlab("\nAge") +
+  labs(color="Amplitude change per year\n") +
+  theme(axis.text.x = element_text(size = 15, color = c("black"))) +
+  theme(axis.text.y = element_text(size = 15, color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
 ```
 
 ## Age-specific correlation between derivates and the S-A Axis
 
+Posterior derivative - sensorimotor-association axis correlations, N=10,000
 ```{r}
-deriv.SAaxis.cor <- gam.derivatives.glasser %>% group_by(age) %>% do(SA.correlation = cor(.$derivative,.$SA.axis, method = c("spearman"))) %>% unnest(SA.correlation) #calculate the correlation between regional fluctuation amplitude change and sensorimotor-association axis rank at each age increment
-
-deriv.SAaxis.posteriorcor <- read.table("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_glasser.csv", header = F, sep = ",") #get the above correlation for all draws from the posterior distribution
-colnames(deriv.SAaxis.posteriorcor) <- sprintf("draw%s",seq(from = 1, to = ncol(deriv.SAaxis.posteriorcor)))
-deriv.SAaxis.posteriorcor$age <- deriv.SAaxis.cor$age
+deriv.SAaxis.posteriorcorrs <- read.table("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_glasser.csv", header = F, sep = ",") #get the regional derivative-regional axis rank correlation at each age for all draws from the posterior distribution
+colnames(deriv.SAaxis.posteriorcorrs) <- sprintf("draw%s",seq(from = 1, to = ncol(deriv.SAaxis.posteriorcorrs)))
+deriv.SAaxis.posteriorcorrs <- cbind(deriv.SAaxis.posteriorcorrs, (gam.derivatives.glasser %>% group_by(age) %>% group_keys()))
 ```
 
-Age of maximal S-A axis correlation: posterior median value + 95% credible interval 
+### Age of maximal sensorimotor-association axis correlation: posterior median value + 95% credible interval
+
 ```{r}
-age.max.corr <- deriv.SAaxis.posteriorcor %>% #find the age at which the correlation is largest for each draw
+age.max.corr <- deriv.SAaxis.posteriorcorrs %>% #find the age at which the correlation is largest for each draw
     summarise(across(contains("draw"),
                      .fns = function(x){
-                       round(deriv.SAaxis.posteriorcor$age[which.max(x)],4)
+                       round(deriv.SAaxis.posteriorcorrs$age[which.max(x)],4)
                      }))
 age.max.corr <- t(age.max.corr)
 age.max.corr.median <- median(age.max.corr) #median age #bayes
@@ -593,19 +599,30 @@ age.max.corr.lower <- age.max.corr.CI[[1]]
 age.max.corr.upper <- age.max.corr.CI[[2]]
 ```
 
-S-A axis correlation value at each age: posterior median values + 95% credible interval 
 ```{r}
-deriv.SAaxis.posteriorcor <- deriv.SAaxis.posteriorcor %>% select(contains("draw"))
+age.max.corr.median
+```
 
-deriv.SAaxis.mediancor <- apply(deriv.SAaxis.posteriorcor, 1, function(x){median(x)}) #median correlation value at each age
+```{r}
+age.max.corr.CI
+```
 
-cor.credible.intervals <- apply(deriv.SAaxis.posteriorcor, 1, function(x){quantile(x, probs = c(0.025, 0.975))}) #compute the credible interval for the correlation value at each age based on all draws
+### Sensorimotor-association axis correlation value at each age: posterior median values + 95% credible interval
+
+```{r}
+deriv.SAaxis.posteriorcorrs <- deriv.SAaxis.posteriorcorrs %>% select(contains("draw"))
+
+deriv.SAaxis.mediancorr <- apply(deriv.SAaxis.posteriorcorrs, 1, function(x){median(x)}) #median correlation value at each age
+
+cor.credible.intervals <- apply(deriv.SAaxis.posteriorcorrs, 1, function(x){quantile(x, probs = c(0.025, 0.975))}) #compute the credible interval for the correlation value at each age based on all draws
 cor.credible.intervals <- t(cor.credible.intervals)
 cor.credible.intervals <- as.data.frame(cor.credible.intervals)
-cor.credible.intervals$age <- deriv.SAaxis.cor$age
-cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancor 
+cor.credible.intervals <- cbind(cor.credible.intervals, (gam.derivatives.glasser %>% group_by(age) %>% group_keys()))
+cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancorr 
 colnames(cor.credible.intervals) <- c("lower","upper","age","SA.correlation")
 ```
+
+### Window of null sensorimotor-association axis correlation
 
 ```{r}
 cor.credible.intervals$max.corr.CI <- (cor.credible.intervals$age > age.max.corr.lower & cor.credible.intervals$age < age.max.corr.upper) #add a column that indicates whether each age is included in the age of maximal correlation credible interval (T/F)
@@ -617,19 +634,27 @@ cor.credible.intervals$zero.corr.window <- cor.credible.intervals$age*cor.credib
 cor.credible.intervals$zero.corr.window[cor.credible.intervals$zero.corr.window == 0] <- NA
 ```
 
-Sensorimotor-Association Axis Development Sliding Window Plot
+```{r}
+min(cor.credible.intervals$age[cor.credible.intervals$zero.corr.CI == TRUE])
+```
+
+```{r}
+max(cor.credible.intervals$age[cor.credible.intervals$zero.corr.CI == TRUE])
+```
+
+Sensorimotor-association axis development sliding window plot
 ```{r}
 ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
 geom_line(size=1.5) +
 geom_ribbon(alpha=.2, fill=c("grey30")) +
 labs(x="\nAge", y="Developmental Alignment the Axis\n") +
-geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill="#aba3e6") +
-geom_ribbon(aes(x = zero.corr.window, y = SA.correlation), fill="#280854") +  
+geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill="#F4A674") +
+geom_ribbon(aes(x = zero.corr.window, y = SA.correlation), fill="#952162") +  
 theme(
-axis.title.x=element_text(size=26, color = "black"),
-axis.title.y=element_text(size=26, color = "black"),
+axis.title.x=element_text(size=15, color = "black"),
+axis.title.y=element_text(size=15, color = "black"),
 axis.line = element_line(color = "black"),
-axis.text=element_text(size=26, color = "black"),
+axis.text=element_text(size=15, color = "black"),
 panel.background=element_blank(),legend.position = "none") +
 scale_y_continuous(breaks=c(0,0.2,0.4,0.6)) +
 scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), limits = c(8, 23), expand = c(0,0))
@@ -637,16 +662,18 @@ scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), limits = c(8, 23), e
 
 # Fluctuation Amplitude Variability is Linked to Variability in the Developmental Environment
 
-## Significant associations between fluctuation amplitude and environmental factor
+## Significant associations between fluctuation amplitude and environmental factors
 
 Number of cortical regions showing significant environment effects
 
 * original model
+
 ```{r}
 sum(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05) 
 ```
 
 * controlling for parental education
+
 ```{r}
 sum(p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05)
 ```
@@ -654,41 +681,46 @@ sum(p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05)
 Percent of cortical regions showing significant environment effects
 
 * original model
+
 ```{r}
 (sum(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05))/(nrow(df.env))*100 
 ```
 
 * controlling for parental education
+
 ```{r}
 (sum(p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05))/(nrow(df.env))*100 
 ```
 
 Across-cortex environment effect size and direction
 ```{r, warning=F, message=F}
-df.env$GAM.env.partialR2.significant <- df.env$GAM.env.partialR2*(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05)
-df.env$GAM.env.partialR2.significant[df.env$GAM.env.partialR2.significant == 0] <- NA
-df.env$GAM.env.edu.partialR2.significant <- df.env$GAM.env.edu.partialR2*(p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05)
-df.env$GAM.env.edu.partialR2.significant[df.env$GAM.env.edu.partialR2.significant == 0] <- NA
-  
 ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), position = c("stacked")) + 
   theme_void() + 
   labs(fill="Age Effect") +
   scale_fill_gradient2(low= "#F4A674", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-4,4), oob=squish)
-#paletteer::scale_fill_paletteer_c("grDevices::PuOr")
-#aletteer::scale_fill_paletteer_c("grDevices::RdYlBu")
 ```
 
-Correlation between fluctuation amplitude age effects and the sensorimotor-association axis
+## Correlation between environmental effects and the sensorimotor-association axis
 
 * original model
+
 ```{r}
+#all regions
 cor.test(df.env$GAM.env.tvalue, df.env$SA.axis, method=c("spearman"))
-perm.sphere.p(df.env.spin$GAM.env.partialR2, df.env.spin$SA.axis, perm.id.full,corr.type='spearman')
-cor.test(df.env$GAM.env.partialR2.significant, df.env$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.spin$GAM.env.tvalue, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
+```
+
+```{r}
+#significant regions
+df.env.spin$GAM.env.tvalue.significant <- df.env.spin$GAM.env.tvalue*(p.adjust(df.env.spin$Anova.env.pvalue, method=c("fdr")) < 0.05)
+df.env.spin$GAM.env.tvalue.significant[df.env.spin$GAM.env.tvalue.significant == 0] <- NA
+
+cor.test(df.env.spin$GAM.env.tvalue.significant, df.env.spin$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.spin$GAM.env.tvalue.significant, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
 ```
 
 Correlation plot
-```{r}
+```{r, message=F}
 ggplot(df.env, aes(x=SA.axis, y=GAM.env.tvalue, fill = SA.axis)) + 
 geom_point(color = "white",shape=21, size=3.7) +
 scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
@@ -701,36 +733,37 @@ axis.line = element_line(color = "black"),
 axis.text=element_text(size=15, family ="Arial", color = c("black")),
 panel.background=element_blank(),
 legend.position = "none")
-
-ggplot(df.env, aes(x=SA.axis, y=GAM.env.partialR2, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Environment Effect\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
-
-ggplot(df.env, aes(x=SA.axis, y=GAM.env.partialR2.significant, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Environment Effect\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
 ```
 
 * controlling for parental education
+
 ```{r}
-cor.test(df.env$GAM.env.edu.partialR2, df.env$SA.axis, method=c("spearman"))
-cor.test(df.env$GAM.env.edu.partialR2.significant, df.env$SA.axis, method=c("spearman"))
+#all regions
+cor.test(df.env$GAM.env.edu.tvalue, df.env$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.spin$GAM.env.edu.tvalue, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
+```
+
+```{r}
+#significant regions
+df.env.spin$GAM.env.edu.tvalue.significant <- df.env.spin$GAM.env.edu.tvalue*(p.adjust(df.env.spin$Anova.env.edu.pvalue, method=c("fdr")) < 0.05)
+df.env.spin$GAM.env.edu.tvalue.significant[df.env.spin$GAM.env.edu.tvalue.significant == 0] <- NA
+
+cor.test(df.env.spin$GAM.env.edu.tvalue.significant, df.env.spin$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.spin$GAM.env.edu.tvalue.significant, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
+```
+
+Correlation plot
+```{r, message=F}
+ggplot(df.env, aes(x=SA.axis, y=GAM.env.edu.tvalue, fill = SA.axis)) + 
+geom_point(color = "white",shape=21, size=3.7) +
+scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
+labs(x="\nSensorimtor-Association Axis", y="Environment Effect\n") +
+geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
+theme(
+axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
+axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
+axis.line = element_line(color = "black"),
+axis.text=element_text(size=15, family ="Arial", color = c("black")),
+panel.background=element_blank(),
+legend.position = "none")
 ```
