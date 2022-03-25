@@ -80,8 +80,7 @@ The final study sample was constructed with [/sample_construction/finalsample.Rm
 > Health exclude: 120 participants with medical problems that could impact brain function or incidentally-encountered brain structure abnormalities were excluded from the sample  
 > T1 QA exclude: 23 participants with T1-weighted scans that failed visual QC were excluded from the sample  
 > fMRI motion exclude: 179 participants with a mean relative RMS motion value > 0.2 during the resting state fMRI scan were excluded from the sample  
-> Fluctuation amplitude outlier exclude: From the remaining 1052 participants, 19 individuals that had outlier (+- 4 SD from the mean) fluctuation amplitude data in more than 5% of glasser parcels were excluded from the sample  
-> 
+> Fluctuation amplitude outlier exclude: From the remaining 1052 participants, 19 individuals that had outlier (+- 4 SD from the mean) fluctuation amplitude data in more than 5% of glasser parcels were excluded from the sample   
 <br>
 
 ### Model Fitting 
