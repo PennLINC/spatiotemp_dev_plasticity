@@ -1,0 +1,396 @@
+---
+title: "Fluctuation Amplitude Development: Sensitivity Analyses"
+author: "Valerie Jill Sydnor"
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(cifti)
+library(ggseg)
+library(ggsegExtra)
+library(ggsegGlasser)
+library(dplyr)
+library(stringr)
+library(factoextra)
+library(matrixStats)
+library(scales)
+library(Hmisc)
+library(tidyr)
+source("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/R/perm.sphere.p.R")
+```
+
+Atlas Labels
+```{r}
+glasser.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360_regionlist.csv", header = T)
+schaefer.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/schaefer400_regionlist.csv", header = T)
+```
+
+Sensorimotor-Association Axis
+```{r, warning=F, message=F}
+#Glasser 360
+S.A.axis.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Glasser360.pscalar.nii") #S-A_ArchetypalAxis repo, vertex-wise axis average ranks
+S.A.axis.glasser <- as.data.frame(cbind(rank(S.A.axis.cifti$data), names(S.A.axis.cifti$Parcel)))
+colnames(S.A.axis.glasser) <- c("SA.axis.glasser","orig_parcelname")
+S.A.axis.glasser <- merge(S.A.axis.glasser, glasser.parcel.labels, by="orig_parcelname", sort = F)
+S.A.axis.glasser$SA.axis.glasser <- as.numeric(S.A.axis.glasser$SA.axis.glasser)
+rm(S.A.axis.cifti)
+
+#Schaefer 400
+S.A.axis.cifti <- read_cifti("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Schaefer400.17Networks.pscalar.nii") #S-A_ArchetypalAxis repo, vertex-wise axis average ranks
+S.A.axis.schaefer <- as.data.frame(cbind(rank(S.A.axis.cifti$data), names(S.A.axis.cifti$Parcel)))
+colnames(S.A.axis.schaefer) <- c("SA.axis.schaefer","orig_parcelname")
+S.A.axis.schaefer$label <- schaefer.parcel.labels$label
+S.A.axis.schaefer$SA.axis.schaefer <- as.numeric(S.A.axis.schaefer$SA.axis.schaefer)
+rm(S.A.axis.cifti)
+```
+
+SNR Mask
+```{r}
+SNR.mask.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/SNRmask_glasser360.csv")
+SNR.mask.schaefer <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/SNRmask_schaefer400.csv")
+```
+
+Spin Test Parcel Rotation Matrix
+```{r}
+permutations.glasser <- readRDS("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds")
+permutations.schaefer <- readRDS("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/schaefer_sphericalrotations_N10000.rds")
+```
+
+GAM Statistics
+```{r, warning=F, message=F}
+setwd("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/")
+
+files <- list.files(getwd(), pattern='statistics', ignore.case = F, full.names = F, recursive = T) 
+
+for(file in files){
+  varname <- gsub(".*/","", file)
+  varname <- gsub('.{4}$', '', varname)
+  assign(varname, read.csv(file))
+  df.list <- list(get(varname), S.A.axis.glasser, SNR.mask.glasser) #dfs to merge
+  assign(varname,  Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list))
+ 
+  varname.spin <- paste(varname, "spin", sep=".")
+  assign(varname.spin, (rbind(get(varname)[181:360,], get(varname)[1:180,])))
+
+  assign(varname, (get(varname) %>% filter(SNR.mask != 0)))}
+```
+```{r}
+statistics_schaefer <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_statistics_schaefer.csv")
+df.list <- list(statistics_schaefer, S.A.axis.schaefer, SNR.mask.schaefer) #dfs to merge
+statistics_schaefer <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list) 
+
+statistics_schaefer.spin <- statistics_schaefer #left hemisphere -> right hemisphere
+
+statistics_schaefer <- statistics_schaefer %>% filter(SNR.mask != 0)
+```
+
+# Age-Dependent Changes in Spontaneous Fluctuations Vary Across the Cortex
+
+## Percent of cortical regions showing significant age effects
+
+### *Low motion*
+
+```{r}
+(sum(p.adjust(statistics_lowmotion$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(statistics_lowmotion))*100 
+```
+
+### *Psychiatry exclusions*
+
+```{r}
+(sum(p.adjust(statistics_ltn$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(statistics_ltn))*100
+```
+
+### *Vascular control*
+
+```{r}
+(sum(p.adjust(statistics_cbf$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(statistics_cbf))*100 
+```
+
+### *T2 signal control*
+
+```{r}
+(sum(p.adjust(statistics_T2$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(statistics_T2))*100 
+```
+
+### *Normalization*
+
+```{r}
+(sum(p.adjust(statistics_norm$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(statistics_norm))*100 
+```
+
+### *Atlas*
+
+```{r}
+(sum(p.adjust(statistics_schaefer$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(statistics_schaefer))*100 
+```
+
+
+## Cortical smooth functions
+
+Regional smooths plot function
+```{r}
+plot_gam_smooths <- function(smooths.path, smooths.statistics){
+
+#Read in smooth estimate data
+  gamsmooths <- read.csv(smooths.path, header = T)
+  colnames(gamsmooths) <- c("age", "est", "index" ,"label")
+  gamsmooths <- inner_join(gamsmooths, smooths.statistics, by="label", sort = F)
+  gamsmooths.lh <- gamsmooths[33401:67200,]
+    
+#Create across-region age by smooth estimate plot 
+  smooth.plot <- ggplot(gamsmooths.lh,aes(age,est,group=index,color=GAM.age.partialR2)) + 
+  geom_line(size=.8, alpha = .8) + 
+  paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c((quantile(smooths.statistics$GAM.age.partialR2, probs = seq(0, 1, 0.05))[2]), (quantile(smooths.statistics$GAM.age.partialR2, probs = seq(0, 1, 0.1))[18])), oob = squish) +
+  theme_classic() +
+  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n" ) +
+  theme(legend.position = "none") +
+  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
+  
+  rm(gamsmooths)
+  rm(gamsmooths.lh)
+  rm(smooths.statistics)
+  gc()
+    
+  return(smooth.plot)
+}
+```
+
+### *Low motion*
+
+```{r}
+plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/lowmotion/smooths_lowmotion.csv", smooths.statistics = statistics_lowmotion)
+```
+
+### *Psychiatry exclusions*
+
+```{r}
+plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/ltn/smooths_ltn.csv", smooths.statistics = statistics_ltn)
+```
+
+### *Vascular control*
+
+```{r}
+plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/cbf/smooths_cbf.csv", smooths.statistics = statistics_cbf)
+```
+
+### *T2 signal control*
+
+```{r}
+plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/T2star/smooths_T2.csv", smooths.statistics = statistics_T2)
+```
+
+### *Normalization*
+
+```{r}
+plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/norm//smooths_norm.csv", smooths.statistics = statistics_norm)
+```
+
+### *Atlas*
+
+```{r}
+gamsmooths <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_smoothestimates_schaefer.csv")
+gamsmooths <- inner_join(gamsmooths, statistics_schaefer, by="label", sort = F)
+gamsmooths.lh <- gamsmooths[1:37600,]
+    
+smooth.plot <- ggplot(gamsmooths.lh,aes(age,est,group=index,color=GAM.age.partialR2)) + 
+  geom_line(size=.8, alpha = .8) + 
+  paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c((quantile(statistics_schaefer$GAM.age.partialR2, probs = seq(0, 1, 0.05))[2]), (quantile(statistics_schaefer$GAM.age.partialR2, probs = seq(0, 1, 0.1))[18])), oob = squish) +
+  theme_classic() +
+  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n" ) +
+  theme(legend.position = "none") +
+  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
+
+smooth.plot
+```
+
+```{r include=FALSE}
+rm(gamsmooths)
+rm(gamsmooths.lh)
+gc()
+```  
+
+# Fluctuation Amplitude Development Unfolds along the Hierarchical Sensorimotor-Association Axis
+
+## Age effects along the S-A Axis
+
+### *Low motion*
+
+```{r}
+cor.test(statistics_lowmotion$GAM.age.partialR2, statistics_lowmotion$SA.axis.glasser, method=c("spearman"))
+
+statistics_lowmotion.spin$GAM.age.partialR2[statistics_lowmotion.spin$SNR.mask == 0] <- NA
+perm.sphere.p(statistics_lowmotion.spin$GAM.age.partialR2, statistics_lowmotion.spin$SA.axis.glasser, permutations.glasser, corr.type='spearman')
+```
+
+### *Psychiatry exclusions*
+
+```{r}
+cor.test(statistics_ltn$GAM.age.partialR2, statistics_ltn$SA.axis.glasser, method=c("spearman"))
+
+statistics_ltn.spin$GAM.age.partialR2[statistics_ltn.spin$SNR.mask == 0] <- NA
+perm.sphere.p(statistics_ltn.spin$GAM.age.partialR2, statistics_ltn.spin$SA.axis.glasser, permutations.glasser, corr.type='spearman')
+```
+
+### *Vascular control*
+
+```{r}
+cor.test(statistics_cbf$GAM.age.partialR2, statistics_cbf$SA.axis.glasser, method=c("spearman"))
+
+statistics_cbf.spin$GAM.age.partialR2[statistics_cbf.spin$SNR.mask == 0] <- NA
+perm.sphere.p(statistics_cbf.spin$GAM.age.partialR2, statistics_cbf.spin$SA.axis.glasser, permutations.glasser, corr.type='spearman')
+```
+
+### *T2 signal control*
+
+```{r}
+cor.test(statistics_T2$GAM.age.partialR2, statistics_T2$SA.axis.glasser, method=c("spearman"))
+
+statistics_T2.spin$GAM.age.partialR2[statistics_T2.spin$SNR.mask == 0] <- NA
+perm.sphere.p(statistics_T2.spin$GAM.age.partialR2, statistics_T2.spin$SA.axis.glasser, permutations.glasser, corr.type='spearman')
+```
+
+### *Normalization*
+
+```{r}
+cor.test(statistics_norm$GAM.age.partialR2, statistics_norm$SA.axis.glasser, method=c("spearman"))
+
+statistics_norm.spin$GAM.age.partialR2[statistics_norm.spin$SNR.mask == 0] <- NA
+perm.sphere.p(statistics_norm.spin$GAM.age.partialR2, statistics_norm.spin$SA.axis.glasser, permutations.glasser, corr.type='spearman')
+```
+
+### *Atlas*
+
+```{r}
+cor.test(statistics_schaefer$GAM.age.partialR2, statistics_schaefer$SA.axis.schaefer, method=c("spearman"))
+
+statistics_schaefer.spin$GAM.age.partialR2[statistics_schaefer.spin$SNR.mask == 0] <- NA
+perm.sphere.p(statistics_schaefer.spin$GAM.age.partialR2, statistics_schaefer.spin$SA.axis.schaefer, permutations.schaefer, corr.type='spearman')
+```
+
+```{r include=FALSE}
+rm(list = ls()[grep("statistics", ls())])
+gc()
+```
+
+# The Neurodevelopmental Hierarchy is Dominant through Adolescence
+
+## Age-specific correlation between derivates and the S-A Axis
+
+```{r}
+gam.derivatives.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_derivatives_glasser.csv")
+```
+
+Derivation-Axis correlation plot function
+```{r}
+plot_axis_correlation <- function(derivcorrs.path){
+
+#Read in derivative correlations
+  deriv.SAaxis.posteriorcorrs <- read.table(derivcorrs.path, header = F, sep = ",")
+  colnames(deriv.SAaxis.posteriorcorrs) <- sprintf("draw%s",seq(from = 1, to = ncol(deriv.SAaxis.posteriorcorrs)))
+  deriv.SAaxis.posteriorcorrs <- cbind(deriv.SAaxis.posteriorcorrs, (gam.derivatives.glasser %>% group_by(age) %>% group_keys()))
+  
+#Age of maximal sensorimotor-association axis correlation: posterior median value + 95% credible interval
+  age.max.corr <- deriv.SAaxis.posteriorcorrs %>% #find the age at which the correlation is largest for each draw
+    summarise(across(contains("draw"),
+                     .fns = function(x){
+                       round(deriv.SAaxis.posteriorcorrs$age[which.max(x)],4)
+                     }))
+  age.max.corr <- t(age.max.corr)
+  age.max.corr.median <- median(age.max.corr) #median age #bayes
+  age.max.corr.CI <- quantile(age.max.corr, probs = c(0.025, 0.975)) #compute the credible interval based on all draws
+  age.max.corr.lower <- age.max.corr.CI[[1]]
+  age.max.corr.upper <- age.max.corr.CI[[2]]
+
+#Sensorimotor-association axis correlation value at each age: posterior median values + 95% credible interval
+  deriv.SAaxis.posteriorcorrs <- deriv.SAaxis.posteriorcorrs %>% select(contains("draw"))
+
+  deriv.SAaxis.mediancorr <- apply(deriv.SAaxis.posteriorcorrs, 1, function(x){median(x)}) #median correlation value at each age
+
+  cor.credible.intervals <- apply(deriv.SAaxis.posteriorcorrs, 1, function(x){quantile(x, probs = c(0.025, 0.975))}) #compute the credible interval for the correlation value at each age based on all draws
+  cor.credible.intervals <- t(cor.credible.intervals)
+  cor.credible.intervals <- as.data.frame(cor.credible.intervals)
+  cor.credible.intervals <- cbind(cor.credible.intervals, (gam.derivatives.glasser %>% group_by(age) %>% group_keys()))
+  cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancorr 
+  colnames(cor.credible.intervals) <- c("lower","upper","age","SA.correlation")
+  
+#Window of null sensorimotor-association axis correlation
+  cor.credible.intervals$max.corr.CI <- (cor.credible.intervals$age > age.max.corr.lower & cor.credible.intervals$age < age.max.corr.upper) #add a column that indicates whether each age is included in the age of maximal correlation credible interval (T/F)
+  cor.credible.intervals$max.cor.window <- cor.credible.intervals$age*cor.credible.intervals$max.corr.CI #add a column that only includes ages in this interval
+  cor.credible.intervals$max.cor.window[cor.credible.intervals$max.cor.window == 0] <- NA
+                        
+  cor.credible.intervals$zero.corr.CI <- (cor.credible.intervals$lower < 0 & cor.credible.intervals$upper > 0) #add a column that indicates whether the credible interval for the correlation includes 0
+  cor.credible.intervals$zero.corr.window <- cor.credible.intervals$age*cor.credible.intervals$zero.corr.CI #add a column that only includes ages in the zero window
+  cor.credible.intervals$zero.corr.window[cor.credible.intervals$zero.corr.window == 0] <- NA
+  
+  derivative.correlation.plot <- ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
+    geom_line(size=1.5) +
+    geom_ribbon(alpha=.2, fill=c("grey30")) +
+    labs(x="\nAge", y="Developmental Alignment to the S-A Axis\n") +
+    geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill="#F4A674") +
+    geom_ribbon(aes(x = zero.corr.window, y = SA.correlation), fill="#952162") +  
+    theme(
+    axis.title.x=element_text(size=15, color = "black"),
+    axis.title.y=element_text(size=15, color = "black"),
+    axis.line = element_line(color = "black"),
+    axis.text=element_text(size=15, color = "black"),
+    panel.background=element_blank(),legend.position = "none") +
+    scale_y_continuous(breaks=c(0,0.2,0.4,0.6), limits=c(-.13,.75)) +
+    scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), limits = c(8, 23), expand = c(0,0))
+  
+  rm(deriv.SAaxis.posteriorcorrs)
+  rm(cor.credible.intervals)
+  gc()
+  
+  derivative.correlation.plot
+}
+```
+
+### *Low motion*
+
+```{r, message=F, warning=F}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/lowmotion/axiscorrelation_lowmotion.csv")
+```
+
+### *Psychiatry exclusions*
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/ltn/axiscorrelation_ltn.csv")
+```
+
+### *Vascular control*
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/cbf/axiscorrelation_cbf.csv")
+```
+
+### *T2 signal control*
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/T2star/axiscorrelation_T2.csv")
+```
+
+### *Normalization*
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/norm/axiscorrelation_norm.csv")
+```
+
+### *Atlas*
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_schaefer.csv")
+```
