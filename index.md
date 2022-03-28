@@ -117,7 +117,7 @@ A rendered html of hierarchical_development.Rmd can be viewed [here](https://htm
 
 ### Sensitivity Analyses
 
-The robustness of our developmental findings was confirmed in a series of sensitivity analyses. Sensitiviy analysis GAMs were fit with [sensitivity_analyses/fitGAMs_sensitivityanalyses.R](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/fitGAMs_sensitivityanalyses.R) and results were examined in sensitivity_analyses/sensitivityresults.Rmd(https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/sensitivityresults.Rmd). The following sensitivity analyses were performed:
+The robustness of our developmental findings was confirmed in a series of sensitivity analyses. Sensitiviy analysis GAMs were fit with [sensitivity_analyses/fitGAMs_sensitivityanalyses.R](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/fitGAMs_sensitivityanalyses.R) and results were examined in [sensitivity_analyses/sensitivityresults.Rmd](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/sensitivityresults.Rmd). The following sensitivity analyses were performed:
 
 - *Low motion*: Findings were assessed in a low motion sample of N = 690 participants with a relative mean RMS < 0.075
 - *Psychiatry exclusions*: Findings were assessed in a sample that excluded participants with current psychotropic medication use or a history of psychiatric hospitalization
