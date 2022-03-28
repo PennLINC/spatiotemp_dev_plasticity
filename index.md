@@ -117,11 +117,11 @@ A rendered html of hierarchical_development.Rmd can be viewed [here](https://htm
 
 ### Sensitivity Analyses
 
-The robustness of our developmental findings was confirmed in a series of sensitivity analyses. Sensitiviy analysis GAMs were fit with sensitivity_analyses/fitGAMs_sensitivityanalyses.R and results were examined in sensitivity_analyses/sensitivity_results.Rmd. The following sensitivity analyses were performed:
+The robustness of our developmental findings was confirmed in a series of sensitivity analyses. Sensitiviy analysis GAMs were fit with [sensitivity_analyses/fitGAMs_sensitivityanalyses.R](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/fitGAMs_sensitivityanalyses.R) and results were examined in sensitivity_analyses/sensitivityresults.Rmd(https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/sensitivityresults.Rmd). The following sensitivity analyses were performed:
 
 - *Low motion*: Findings were assessed in a low motion sample of N = 690 participants with a relative mean RMS < 0.075
 - *Psychiatry exclusions*: Findings were assessed in a sample that excluded participants with current psychotropic medication use or a history of psychiatric hospitalization
 - *Vascular control*: All fluctuation amplitude models were re-fit while controlling for regional cerebral blood flow (quantified with ASL)
-- *T2 signal control*: All fluctuation amplitude models were re-fit while controlling for regional BOLD signal level (T2*) during the fMRI scan
+- *T2 signal control*: All fluctuation amplitude models were re-fit while controlling for regional BOLD signal level (T2*) during the fMRI scan. Regional T2* was quantified with [sensitivity_analyses/parcellated_meanT2star.R](https://github.com/PennLINC/spatiotemp_dev_plasticity/blob/main/sensitivity_analyses/parcellated_meanT2star.R)
 - *Normalization*: Developmental GAMs were run with mean normalized fluctuation amplitude as the dependent variable
 - *Atlas*: Results were reproduced using the Schaefer 400 atlas
