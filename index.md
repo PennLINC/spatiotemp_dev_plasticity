@@ -52,7 +52,7 @@ Timeseries/: vertex-wise and parcel-wise fully processed resting fMRI timeseries
 <br>
 <br>
 # CODE DOCUMENTATION
-The entire analytic workflow implemented in this project is described in the following sections with links to the corresponding code on github. This workflow includes quantification of regional fluctuation amplitude, PNC sample selection, fitting of generalized additive models (GAMs), and characterization of relationships between fluctuation amplitude, age, environmental variability, and the sensorimotor-association axis. Scripts were implemented in the order outlined below.
+The entire analytic workflow implemented in this project is described in the following sections and links to the corresponding github code are provided. This workflow includes quantification of regional fluctuation amplitude, PNC sample selection, fitting of generalized additive models (GAMs), and characterization of relationships between fluctuation amplitude, age, environmental variability, and the sensorimotor-association axis. Scripts were implemented in the order outlined below.
 <br>
 ### Fluctuation Amplitude Quantification
 Resting state functional MRI data were processed with [fmriprep 20.2.3](https://hub.docker.com/layers/fmriprep/nipreps/fmriprep/20.2.3/images/sha256-102db5fe8b0a34298f2eb2fd5962ad99ff0a948d258cbf08736fcc1b845cad9f?context=explore) and [xcp-d 0.0.4](https://hub.docker.com/layers/xcp_abcd/pennlinc/xcp_abcd/0.0.4/images/sha256-317160b8078cf7978eaf9db6fef32df78864232cb8a8759a354832813d1faf02?context=explore) to quantify fluctuation amplitude at each vertex on the fslr 32k cortical surface. 
