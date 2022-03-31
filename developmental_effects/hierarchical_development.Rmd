@@ -28,6 +28,7 @@ library(matrixStats)
 library(scales)
 library(Hmisc)
 library(tidyr)
+extrafont::loadfonts()
 source("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/R/perm.sphere.p.R")
 ```
 
@@ -146,11 +147,14 @@ Percent of cortical regions showing significant age effects
 ```
 
 Across-cortex effect size and (mean derivative) direction
-```{r, warning=F, message=F}
+```{r warning=FALSE, include=FALSE}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked")) + 
   theme_void() + 
-  labs(fill="Age Effect") +
-  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) 
+  labs(fill="") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
+  theme(legend.text = element_text(family = "Arial", color = c("black")))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/Brainmap_ageeffect.jpg", device = "pdf", dpi = 500, width = 3 , height = 2)
 ```
 
 ## Cortical smooth functions
@@ -158,110 +162,173 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), po
 ```{r}
 gam.smoothestimates.glasser.lh <- gam.smoothestimates.glasser[33401:67200,]
 ggplot(gam.smoothestimates.glasser.lh,aes(age,est,group=index,color=GAM.age.partialR2)) + 
-  geom_line(size=.8, alpha = .8) + 
+  geom_line(size=.3, alpha = .8) + 
   paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
   theme_classic() +
   labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n" ) +
   theme(legend.position = "none") +
-  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
+  theme(axis.text = element_text(size=6, family = "Arial", color = c("black")), axis.title = element_text(size=6, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/Regional_agesmooths.jpg", device = "pdf", dpi = 500, width = 2.55 , height = 2.3)
 ```
 
 ### Region-specific developmental trajectories and derivatives
 
 **Region V1**
 
+```{r warning=FALSE, include=FALSE}
+V1.dev <- df.dev %>% filter(label == "rh_R_V1")
+ggseg(.data = V1.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, colour=I("#ED8B65"), size=I(.03)), position = c("stacked"), hemisphere = "right", view = "medial" ) + 
+  theme_void() + 
+  labs(fill="") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", na.value="transparent", direction = -1, limits = c(-0.07, .03), oob = squish) +
+  theme(legend.position = "none")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/V1_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
+```
+
 ```{r}
 V1.smooth <- gam.fitted.glasser %>% filter(label == "rh_R_V1")
 V1.derivatives <- gam.derivatives.glasser %>% filter(label == "rh_R_V1")
 
-ggplot(data = fluctuations.glasser.pnc, aes(x = age, y = rh_R_V1)) +
-  geom_point(color="#FBDC9D") +
-  geom_line(data = V1.smooth, aes(x = age, y = fitted), color="#F8B57B", size=2) +
+scatterplot <- ggplot(data = fluctuations.glasser.pnc, aes(x = age, y = rh_R_V1)) +
+  geom_point(color="#FBDC9D", size = .3) +
+  geom_line(data = V1.smooth, aes(x = age, y = fitted), color="#F8B57B", size = 1) +
   geom_ribbon(data = V1.smooth, aes(x = age, y = fitted,  ymin = lower, ymax = upper) ,alpha = .7, linetype = 0, fill="#F8B87D",) +
   labs(x="\nAge", y="Fluctuation Amplitude\n") +
   theme_classic() +
   theme(
-  axis.text = element_text(size=15, family = "Arial", color = c("black")),
-  axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-  axis.title.y=element_text(size=15, family ="Arial", color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) +
-  scale_y_continuous(breaks=c(0.5, 1, 1.5, 2, 2.5, 3))
+  axis.text = element_text(size=6, family = "Arial", color = c("black")),
+  axis.title.x=element_text(size=6, family ="Arial", color = c("black")),
+  axis.title.y=element_text(size=6, family ="Arial", color = c("black")),
+  axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
+  scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0,.45)) +
+  scale_y_continuous(breaks=c(1.0, 2.0), labels = c(sprintf("%.1f", round(1, 2)), sprintf("%.1f", round(2, 2))))
 
-ggplot(data = V1.derivatives) + 
+derivplot <- ggplot(data = V1.derivatives) + 
   geom_tile(aes(x = age, y = .1, fill = significant.derivative)) +
   scale_fill_gradient(low = "#EFAF77", high = "#FFE0A1", limits = c(-0.0323371,-.01), na.value = "white") +
   labs(x="\nAge", fill = "Derivative") + 
   theme_classic() +
+  theme(legend.position = "none") +
   theme(axis.title.y = element_blank(),
-          axis.text.y = element_blank(),
+          axis.text = element_blank(),
           axis.line = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.title.x=element_text(size=15, family ="Arial", color = c("black")))
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          legend.text =  element_text(size=6, family = "Arial", color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
+
+allplots <- list(scatterplot,derivplot)
+V1.plot <- cowplot::plot_grid(rel_heights = c(16,3.2), plotlist = allplots, align = "v", axis = "lr", ncol = 1)
+V1.plot 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/V1_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)
 ```
 
 **Region p24pr**
+
+```{r warning=FALSE, include=FALSE}
+p24pr.dev <- df.dev %>% filter(label == "rh_R_p24pr")
+ggseg(.data = p24pr.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, colour=I("#D54D55"), size=I(.03)), position = c("stacked"), hemisphere = "right", view = "medial" ) + 
+  theme_void() + 
+  labs(fill="") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", na.value="transparent", direction = -1, limits = c(-0.07, .03), oob = squish) +
+  theme(legend.position = "none")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/p24pr_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
+```
 
 ```{r}
 p24pr.smooth <- gam.fitted.glasser %>%filter(label == "rh_R_p24pr")
 p24pr.derivatives <- gam.derivatives.glasser %>% filter(label == "rh_R_p24pr")
 
-ggplot(data = fluctuations.glasser.pnc, aes(x = age, y = rh_R_p24pr)) +
-  geom_point(color="#DF5E54") +
-  geom_line(data = p24pr.smooth, aes(x = age, y = fitted), color="#D54D55", size=2) +
+scatterplot <- ggplot(data = fluctuations.glasser.pnc, aes(x = age, y = rh_R_p24pr)) +
+  geom_point(color = "#e06d65", size = .3) +
+  geom_line(data = p24pr.smooth, aes(x = age, y = fitted), color="#D54D55", size = 1) +
   geom_ribbon(data = p24pr.smooth, aes(x = age, y = fitted,  ymin = lower, ymax = upper) ,alpha = .7, linetype = 0, fill="#D54D55",) +
   labs(x="\nAge", y="Fluctuation Amplitude\n") +
   theme_classic() +
   theme(
-  axis.text = element_text(size=15, family = "Arial", color = c("black")),
-  axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-  axis.title.y=element_text(size=15, family ="Arial", color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) +
-  scale_y_continuous(breaks=c(0.5, 1, 1.5, 2, 2.5, 3))
+  axis.text = element_text(size=6, family = "Arial", color = c("black")),
+  axis.title.x=element_text(size=6, family ="Arial", color = c("black")),
+  axis.title.y=element_text(size=6, family ="Arial", color = c("black")),
+  axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
+  scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0,.45)) +
+  scale_y_continuous(breaks=c(0.5, 1.0))
 
-ggplot(data = p24pr.derivatives) + 
-  geom_tile(aes(x = age, y = .5, fill = significant.derivative)) +
+derivplot <- ggplot(data = p24pr.derivatives) + 
+  geom_tile(aes(x = age, y = .1, fill = significant.derivative)) +
   scale_fill_gradient(high = alpha("#DF5E54",0.7), low = "#D54D55", na.value = "white", limits = c(min(p24pr.derivatives$significant.derivative),-.001)) +
   labs(x="\nAge", fill = "Derivative") + 
   theme_classic() +
+  theme(legend.position = "none") +
   theme(axis.title.y = element_blank(),
-          axis.text.y = element_blank(),
+          axis.text = element_blank(),
           axis.line = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.title.x=element_text(size=15, family ="Arial", color = c("black")))
-  
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          legend.text =  element_text(size=6, family = "Arial", color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
+
+allplots <- list(scatterplot,derivplot)
+p24pr.plot <- cowplot::plot_grid(rel_heights = c(16,3.2), plotlist = allplots, align = "v", axis = "lr", ncol = 1)
+p24pr.plot 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/p24pr_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)  
 ```
 
 **Region IFSa**
 
+```{r warning=FALSE, include=FALSE}
+IFSa.dev <- df.dev %>% filter(label == "lh_L_IFSa")
+ggseg(.data = IFSa.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, colour=I("#381043"), size=I(.03)), position = c("stacked"), hemisphere = "left", view = "lateral" ) + 
+  theme_void() + 
+  labs(fill="") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", na.value="transparent", direction = -1, limits = c(-0.07, .03), oob = squish) +
+  theme(legend.position = "none")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/IFSa_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
+```
+
 ```{r}
-#rh_R_9m
 IFSa.smooth <- gam.fitted.glasser %>%filter(label == "lh_L_IFSa")
 IFSa.derivatives <- gam.derivatives.glasser %>% filter(label == "lh_L_IFSa")
 
-ggplot(data = fluctuations.glasser.pnc, aes(x = age, y = lh_L_IFSa)) +
-  geom_point(color="#6E195E") +
-  geom_line(data = IFSa.smooth, aes(x = age, y = fitted), color="#381043", size=2) +
+scatterplot <- ggplot(data = fluctuations.glasser.pnc, aes(x = age, y = lh_L_IFSa)) +
+  geom_point(color="#893774", size = .3) +
+  geom_line(data = IFSa.smooth, aes(x = age, y = fitted), color="#381043", size = 1) +
   geom_ribbon(data = IFSa.smooth, aes(x = age, y = fitted,  ymin = lower, ymax = upper) ,alpha = .7, linetype = 0, fill="#381043",) +
   labs(x="\nAge", y="Fluctuation Amplitude\n") +
   theme_classic() +
   theme(
-  axis.text = element_text(size=15, family = "Arial", color = c("black")),
-  axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-  axis.title.y=element_text(size=15, family ="Arial", color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) +
-  scale_y_continuous(breaks=c(0.5, 1, 1.5, 2, 2.5, 3))
+  axis.text = element_text(size=6, family = "Arial", color = c("black")),
+  axis.title.x=element_text(size=6, family ="Arial", color = c("black")),
+  axis.title.y=element_text(size=6, family ="Arial", color = c("black")),
+  axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
+  scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0,.45)) +
+  scale_y_continuous(breaks=c(1.0, 2.0), labels = c(sprintf("%.1f", round(1, 2)), sprintf("%.1f", round(2, 2))))
 
-ggplot(data = IFSa.derivatives) + 
-  geom_tile(aes(x = age, y = .5, fill = significant.derivative)) +
+derivplot <- ggplot(data = IFSa.derivatives) + 
+  geom_tile(aes(x = age, y = .1, fill = significant.derivative)) +
   scale_fill_gradient2(high = "#6E195E", low = "#cf93c4", midpoint = 0, mid = "white", na.value = "white") +
   labs(x="\nAge", fill = "Derivative") + 
   theme_classic() +
+  theme(legend.position = "none") +
   theme(axis.title.y = element_blank(),
-          axis.text.y = element_blank(),
+          axis.text = element_blank(),
           axis.line = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.title.x=element_text(size=15, family ="Arial", color = c("black")))
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          legend.text =  element_text(size=6, family = "Arial", color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
+
+allplots <- list(scatterplot,derivplot)
+IFSa.plot <- cowplot::plot_grid(rel_heights = c(16,3.2), plotlist = allplots, align = "v", axis = "lr", ncol = 1)
+IFSa.plot 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/IFSa_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)  
   
 ```
 
