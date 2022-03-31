@@ -340,16 +340,22 @@ Fluctuation amplitude age effects map
 ```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked"), hemisphere = c("right")) + 
   theme_void() + 
-  labs(fill="Age Effect") +
-  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish)
+  labs(fill="") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
+  theme(legend.text = element_blank())
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 T1/T2 ratio age effects map
 ```{r}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.partialR2), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  labs(fill="Age Effect") +
-  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) 
+  labs(fill="") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) +
+  theme(legend.text = element_blank())
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_myelin.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 Correlation (rho + p.spin) between fluctuation amplitude age effects and T1/T2 ratio age effects
@@ -360,36 +366,41 @@ perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$myelin.partialR2, perm.
 
 Correlation plot
 ```{r}
-ggplot(df.dev, aes(x=myelin.partialR2, y=GAM.age.partialR2, fill = myelin.partialR2)) + 
-geom_point(color = "white",shape=21, size=3.7) +
+ggplot(df.dev, aes(x = myelin.partialR2, y = GAM.age.partialR2, fill = myelin.partialR2)) + 
+geom_point(color = df.dev$myelin.partialR2, shape = 21, size = 1.5) +
 paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) +
+paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) +
 labs(x="\nMyelin Age Effect", y="Fluctuation Amplitude Age Effect\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .75) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Ageeffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.68 , height = 2.1)
 ```
 
 ## Temporal development
 
 Fluctuation amplitude age of decrease onset
 ```{r, warning=F, message=F}
-ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=minage.decrease), position = c("stacked"), hemisphere = "right") + 
+ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = minage.decrease), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  labs(fill="Age Decrease Onset") +
-  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(9, 17.5), oob = squish) 
+  labs(fill = "") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10, 17.5), oob = squish) +
+  theme(legend.text = element_blank())
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function_agedecrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 T1/T2 ratio age of maximal increase
 ```{r}
-ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.maxdev), position = c("stacked"), hemisphere = "right") + 
+ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = myelin.maxdev), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  labs(fill="Age Maximal Increase") +
-  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10,17.5), oob = squish) 
+  labs(fill = "") +
+  paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10,17.5), oob = squish) +
+  theme(legend.text = element_blank())
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_myelin_ageincrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and T1/T2 ratio max age of increase
@@ -407,41 +418,31 @@ perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$myelin.maxd
 
 Correlation plot
 ```{r, message=F, warning=F}
-ggplot(df.dev, aes(x=myelin.maxdev, y=minage.decrease, fill = myelin.maxdev)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-paletteer::scale_fill_paletteer_c("pals::ocean.matter",  direction = -1, limits = c(10,17.5), oob = squish) +
-labs(x="\nMyelin Age of Maximal Increase", y="Fluctuation Amplitude Age of Decrease Onset\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
+ggplot(late.decrease, aes(x = myelin.maxdev, y = minage.decrease, fill = myelin.maxdev)) + 
+geom_point(aes(color = late.decrease$myelin.maxdev), shape = 21, size = 1.2) +
+paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(10,17.5), oob = squish) +
+paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = 1, limits = c(10,17.5), oob = squish) +
+labs(x="\nMyelin Age Effect", y="Fluctuation Amplitude Age Effect\n") +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .75) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
+scale_y_continuous(breaks=c(10, 12, 14, 16, 18, 20))
 
-ggplot(late.decrease, aes(x=myelin.maxdev, y=minage.decrease, fill = myelin.maxdev)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-paletteer::scale_fill_paletteer_c("pals::ocean.matter",  direction = -1, limits = c(10,17.5), oob = squish) +
-labs(x="\nMyelin Age of Maximal Increase", y="Fluctuation Amplitude Age of Decrease Onset\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.1)
 ```
 
 # Fluctuation Amplitude Development Unfolds along the Hierarchical Sensorimotor-Association Axis
 
 Sensorimotor-association axis
 ```{r, warning=F, message=F}
-ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=SA.axis), position = c("stacked")) + 
+ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = SA.axis), position = c("stacked")) + 
   theme_void() + 
-  theme(legend.position = "none") +
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180)
+  labs(fill = "") +
+  scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
+  theme(legend.text = element_blank())
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 ## Age effects along the S-A Axis
@@ -573,7 +574,7 @@ legend.position = "none")
 PCA brain map 
 ```{r}
 ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill=PC1), position = c("stacked")) + theme_void() + 
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.055, limits = c(-0.08,0.008), oob = squish) + theme(legend.position = "none")
+scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.05, limits = c(-0.11,0.01), oob = squish) + theme(legend.position = "none")
 ```
 
 # The Neurodevelopmental Hierarchy is Dominant through Adolescence
