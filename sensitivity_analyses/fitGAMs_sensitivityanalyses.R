@@ -3,7 +3,7 @@ library(cifti)
 library(purrr)
 source("/cbica/projects/spatiotemp_dev_plasticity/code/spatiotemp_dev_plasticity/gam_models/GAM_functions.R")
 np <- 200
-npd <- 100
+npd <- 1000
 
 glasser.parcel.labels <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360_regionlist.csv", header = T)
 fluctuations.glasser.pnc <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/PNC/glasserfluctuations_demographics_finalsample.csv")
