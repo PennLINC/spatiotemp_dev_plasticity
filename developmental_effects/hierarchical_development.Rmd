@@ -436,13 +436,13 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 Sensorimotor-association axis
 ```{r, warning=F, message=F}
-ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = SA.axis), position = c("stacked")) + 
+ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = SA.axis), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
   labs(fill = "") +
   scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
   theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/SAaxis.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
 ```
 
 ## Age effects along the S-A Axis
@@ -451,22 +451,6 @@ Correlation (rho + p.spin) between fluctuation amplitude age effects and the sen
 ```{r}
 cor.test(df.dev$GAM.age.partialR2, df.dev$SA.axis, method=c("spearman"))
 perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
-```
-
-Correlation plot
-```{r, message=F}
-ggplot(df.dev, aes(x=SA.axis, y=GAM.age.partialR2, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=4.5) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis Rank", y="Fluctuation Amplitude Age Effect\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
 ```
 
 ## Temporal change along the S-A Axis
@@ -479,35 +463,6 @@ cor.test(late.decrease$minage.decrease, late.decrease$SA.axis, method=c("spearma
 perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$SA.axis, perm.id.full,corr.type='spearman')
 ```
 
-Correlation plot
-```{r, message=F, warning=F}
-ggplot(df.dev, aes(x=SA.axis, y=minage.decrease, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Fluctuation Amplitude Age of Decrease Onset\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
-
-ggplot(late.decrease, aes(x=SA.axis, y=minage.decrease, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Fluctuation Amplitude Age of Decrease Onset\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
-```
-
 Sensorimotor-association axis binned GAM smooths 
 ```{r}
 gam.smoothestimates.glasser$age <- round(gam.smoothestimates.glasser$age, 3)
@@ -517,13 +472,14 @@ meansmooth.bins <- gam.smoothestimates.glasser %>% group_by(age, SA.axis.bin) %>
 
 ```{r}
 ggplot(data = meansmooth.bins, aes(x = age, y = est.mean, group = SA.axis.bin, color = as.factor(SA.axis.bin))) +
-  geom_line(size = 2.5) +
+  geom_line(size = 1.5) +
   scale_color_manual(values = c("#FFC228", "#FFCA4E", "#FFD16A", "#FFDA89", "#FFE6B0", "#D7BCDA", "#BE93C4", "#9859A4", "#863E95", "#6F1382")) +
   theme_classic() +
-  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n", color = "Sensorimotor-Association Axis Bin") +
-  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
-  theme(legend.position = c(.585, 0.94), legend.direction = "horizontal", legend.text = element_text(size=13), legend.title = element_text(size=12, family = "Arial", color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
+  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n", color = "Sensorimotor-Association \nAxis Percentile Bin") +
+  theme(legend.position = c(.585, 0.94), legend.direction = "horizontal", legend.text = element_text(size = 6), legend.key.size = unit(.3, "cm"), legend.title = element_text(size = 6, family = "Arial", color = c("black"))) +
+  theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size = .22)) + scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/SAaxis_bin_smooths.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
 ```
 
 ## Principal developmental gradient
@@ -557,24 +513,26 @@ perm.sphere.p(df.dev.spin$PC1, df.dev.spin$SA.axis, perm.id.full,corr.type='spea
 Correlation plot
 ```{r, message=F}
 PC1 <- left_join(PC1, S.A.axis, by="label")
-ggplot(PC1, aes(x=SA.axis, y=PC1, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Development PC1\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
-```
+ggplot(PC1, aes(x = SA.axis, y = PC1, fill = SA.axis)) + 
+geom_point(aes(color = SA.axis), shape = 21, size = 1.2) +
+scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
+scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = 180) +
+labs(x="\nSensorimtor-Association Axis Rank", y="Principal Developmental Axis Loading\n") +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .5) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22))
 
-PCA brain map 
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/AxisPC1_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
+```
+Principal developmental axis brain map 
 ```{r}
-ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill=PC1), position = c("stacked")) + theme_void() + 
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.05, limits = c(-0.11,0.01), oob = squish) + theme(legend.position = "none")
+ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill = PC1), position = c("stacked"), hemisphere = "right") + 
+theme_void() + 
+labs(fill = "") +
+scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.05, limits = c(-0.11,0.008), oob = squish) + theme(legend.text = element_blank())
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/PC1.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
 ```
 
 # The Neurodevelopmental Hierarchy is Dominant through Adolescence
@@ -590,9 +548,10 @@ ggplot(gam.derivatives.glasser.lh,aes(age,derivative,group=index,color=SA.axis))
   theme_classic() +
   theme(legend.position = "none") +
   labs(x = "\nAge", y = "Derivative\n", color = "Sensorimotor-Association Axis Bin") +
-  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
+  theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
 ```
+
 ```{r}
 gam.derivatives.glasser$age <- round(gam.derivatives.glasser$age, 5)
 ```
@@ -600,47 +559,58 @@ gam.derivatives.glasser$age <- round(gam.derivatives.glasser$age, 5)
 Age 10 derivative map
 ```{r, warning=F, message=F, error=F}
 age10.derivs <- gam.derivatives.glasser %>% filter(age == 10.03015)
-age10.derivs$derivative <- rank(age10.derivs$derivative)
+
 ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 168)
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish) #limits = c(-0.11,0.008), oob = squish
+
 rm(age10.derivs)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age10_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
 Age 15 derivative map
 ```{r, warning=F, message=F, error=F}
 age15.derivs <- gam.derivatives.glasser %>% filter(age == 15.02429)
-age15.derivs$derivative <- rank(age15.derivs$derivative)
+
 ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 168)
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish) 
+
 rm(age15.derivs)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age15_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
 Age 20 derivative map
 ```{r, warning=F, message=F, error=F}
 age20.derivs <- gam.derivatives.glasser %>% filter(age == 20.01843)
-age20.derivs$derivative <- rank(age20.derivs$derivative)
+
 ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 168)
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish)
+
 rm(age20.derivs)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
 Derivative by sensorimotor-association axis plot
+
 ```{r}
-ggplot(data=gam.derivatives.glasser,aes(x = age,y = SA.axis, group = index)) +
+derivative.colorbar <- c("#ff7e38", "#f29049", "#ffa25e", "#faab73", "#fabb73", "#ffcd94", "#ffd894", "#ffe6ab", "#ffe6ab", "#fff5de", "#ffffff", "#f79a97", "#f58682", "#EE6E69", "#C95665", "#BB4166", "#B72863", "#941348", "#7d0f65",  "#660c5f", "#4f0e4a")
+
+ggplot(data=gam.derivatives.glasser,aes(x = age, y = SA.axis, group = index)) +
   geom_line(aes(color=derivative), size=1) +
-  #paletteer::scale_color_paletteer_c("grDevices::RdYlBu", direction = -1, limits=c(-0.03,0.03), oob = squish) +
-  paletteer::scale_color_paletteer_c("grDevices::Sunset", direction = -1, limits=c(-0.03,0.03), oob = squish) +
-  #paletteer::scale_color_paletteer_c("grDevices::Inferno", direction = -1, limits=c(-0.03,0.03), oob = squish) +
+  scale_color_gradientn(colours = derivative.colorbar, limits=c(-0.028, 0.028), oob = squish) +
   theme_classic() +
   ylab("Sensorimotor-Association Axis Rank\n") +
   xlab("\nAge") +
-  labs(color="Amplitude change per year\n") +
-  theme(axis.text.x = element_text(size = 15, color = c("black"))) +
-  theme(axis.text.y = element_text(size = 15, color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
+  labs(color="") +
+   theme(axis.text = element_text(size = 7, family = "Arial", color = c("black")), axis.title = element_text(size = 7, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22), legend.text = element_text(size = 6, family = "Arial", color = c("black"))) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))   
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_rank_age_plot.pdf", device = "pdf", dpi = 500, width = 3.7 , height = 4.1)
 ```
 
 ## Age-specific correlation between derivates and the S-A Axis
@@ -673,6 +643,19 @@ age.max.corr.median
 
 ```{r}
 age.max.corr.CI
+```
+
+```{r}
+age.max.corr <- as.data.frame(age.max.corr)
+ggplot(age.max.corr, aes(x = V1)) + 
+geom_histogram(bins = 12, fill = "#FFE5B1") + 
+geom_vline(xintercept = 15.0243, color = "#ba275f", size = .5) +
+labs(x="\nAge", y="Posterior Draw Number\n") +
+theme_classic() +
+theme(axis.text.x = element_text(size = 6, family = "Arial", color = c("black")), axis.text.y = element_blank(), axis.title = element_blank(), axis.line = element_blank(), axis.ticks = element_blank()) +
+scale_x_continuous(breaks=c(14.5, 15, 15.5))   
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/AgeMaxCorr_histogram.pdf", device = "pdf", dpi = 500, width = 1.03 , height = 1.02)
 ```
 
 ### Sensorimotor-association axis correlation value at each age: posterior median values + 95% credible interval
@@ -713,19 +696,16 @@ max(cor.credible.intervals$age[cor.credible.intervals$zero.corr.CI == TRUE])
 Sensorimotor-association axis development sliding window plot
 ```{r}
 ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
-geom_line(size=1.5) +
-geom_ribbon(alpha=.2, fill=c("grey30")) +
-labs(x="\nAge", y="Developmental Alignment the Axis\n") +
-geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill="#F4A674") +
-geom_ribbon(aes(x = zero.corr.window, y = SA.correlation), fill="#952162") +  
-theme(
-axis.title.x=element_text(size=15, color = "black"),
-axis.title.y=element_text(size=15, color = "black"),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, color = "black"),
-panel.background=element_blank(),legend.position = "none") +
-scale_y_continuous(breaks=c(0,0.2,0.4,0.6)) +
-scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), limits = c(8, 23), expand = c(0,0))
+geom_line(size = .5) +
+geom_ribbon(alpha = .2, fill = c("grey30")) +
+labs(x="\nAge", y="Developmental Alignment to the Axis\n") +
+geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill = "#ba275f") +
+theme_classic() + 
+theme(axis.text = element_text(size = 7, family = "Arial", color = c("black")), axis.title = element_text(size = 7, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22)) +
+scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0, .1)) +
+scale_y_continuous(breaks=c(0,0.2,0.4,0.6)) 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_SAaxis_correlation_plot.pdf", device = "pdf", dpi = 500, width = 3.82 , height = 2.35)
 ```
 
 # Fluctuation Amplitude Variability is Linked to Variability in the Developmental Environment
@@ -765,7 +745,10 @@ Across-cortex environment effect size and direction
 ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), position = c("stacked")) + 
   theme_void() + 
   labs(fill="Age Effect") +
-  scale_fill_gradient2(low= "#F4A674", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-4,4), oob=squish)
+  scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-5,5), oob=squish) +
+  theme(legend.text = element_text(size = 6, family = "Arial", color = c("black")))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/Brainmap_enveffect.jpg", device = "pdf", dpi = 500, width = 3.55 , height = 2.55)
 ```
 
 ## Correlation between environmental effects and the sensorimotor-association axis
@@ -789,18 +772,21 @@ perm.sphere.p(df.env.spin$GAM.env.tvalue.significant, df.env.spin$SA.axis, perm.
 
 Correlation plot
 ```{r, message=F}
-ggplot(df.env, aes(x=SA.axis, y=GAM.env.tvalue, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
+df.env$significant <- p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05
+
+ggplot(df.env, aes(x = SA.axis, y = GAM.env.tvalue, fill = SA.axis, color = SA.axis)) + 
+geom_point(aes(size = significant), shape = 21) +
 scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Environment Effect\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
+scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = 180) +
+scale_size_manual(values = c(.7, 1.2)) +
+labs(x="\nSensorimtor-Association Axis Rank", y="Developmental Environment Effect\n") +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .5) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
+scale_y_continuous(breaks = c(-3, 0, 3, 6))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/AxisEnv_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.37 , height = 2.15)
 ```
 
 * controlling for parental education
@@ -818,20 +804,4 @@ df.env.spin$GAM.env.edu.tvalue.significant[df.env.spin$GAM.env.edu.tvalue.signif
 
 cor.test(df.env.spin$GAM.env.edu.tvalue.significant, df.env.spin$SA.axis, method=c("spearman"))
 perm.sphere.p(df.env.spin$GAM.env.edu.tvalue.significant, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
-```
-
-Correlation plot
-```{r, message=F}
-ggplot(df.env, aes(x=SA.axis, y=GAM.env.edu.tvalue, fill = SA.axis)) + 
-geom_point(color = "white",shape=21, size=3.7) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-labs(x="\nSensorimtor-Association Axis", y="Environment Effect\n") +
-geom_smooth(method='lm', se=TRUE, fill=alpha(c("gray70"),.7), col="black") +
-theme(
-axis.title.x=element_text(size=15, family ="Arial", color = c("black")),
-axis.title.y=element_text(size=15, family ="Arial", color = c("black")),
-axis.line = element_line(color = "black"),
-axis.text=element_text(size=15, family ="Arial", color = c("black")),
-panel.background=element_blank(),
-legend.position = "none")
 ```
