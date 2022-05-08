@@ -28,6 +28,7 @@ library(matrixStats)
 library(scales)
 library(Hmisc)
 library(tidyr)
+extrafont::loadfonts()
 source("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/R/perm.sphere.p.R")
 ```
 
@@ -150,14 +151,15 @@ plot_gam_smooths <- function(smooths.path, smooths.statistics){
   gamsmooths.lh <- gamsmooths[33401:67200,]
     
 #Create across-region age by smooth estimate plot 
-  smooth.plot <- ggplot(gamsmooths.lh,aes(age,est,group=index,color=GAM.age.partialR2)) + 
-  geom_line(size=.8, alpha = .8) + 
+  smooth.plot <- ggplot(gamsmooths.lh, aes(age, est, group = index,color= GAM.age.partialR2)) + 
+  geom_line(size = .3, alpha = .8) + 
   paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c((quantile(smooths.statistics$GAM.age.partialR2, probs = seq(0, 1, 0.05))[2]), (quantile(smooths.statistics$GAM.age.partialR2, probs = seq(0, 1, 0.1))[18])), oob = squish) +
   theme_classic() +
-  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n" ) +
+  labs(x = "\nAge", y = "Fluctuation Amplitude\n" ) +
   theme(legend.position = "none") +
-  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
+  theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 4, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
+  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) +
+  scale_y_continuous(breaks=c(-.2, 0, .2), expand = c(0.0,0.08))
   
   rm(gamsmooths)
   rm(gamsmooths.lh)
@@ -172,30 +174,40 @@ plot_gam_smooths <- function(smooths.path, smooths.statistics){
 
 ```{r}
 plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/lowmotion/smooths_lowmotion.csv", smooths.statistics = statistics_lowmotion)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Lowmotion_smooths.jpg", device = "pdf", dpi = 500, width = 1.85 , height = 1.65)
 ```
 
 ### *Psychiatry exclusions*
 
 ```{r}
 plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/ltn/smooths_ltn.csv", smooths.statistics = statistics_ltn)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Psychiatry_smooths.jpg", device = "pdf", dpi = 500, width = 1.85 , height = 1.65)
 ```
 
 ### *Vascular control*
 
 ```{r}
 plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/cbf/smooths_cbf.csv", smooths.statistics = statistics_cbf)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Vascularcontrol_smooths.jpg", device = "pdf", dpi = 500, width = 1.85 , height = 1.65)
 ```
 
 ### *T2 signal control*
 
 ```{r}
 plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/T2star/smooths_T2.csv", smooths.statistics = statistics_T2)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/T2signalcontrol_smooths.jpg", device = "pdf", dpi = 500, width = 1.85 , height = 1.65)
 ```
 
 ### *Normalization*
 
 ```{r}
 plot_gam_smooths(smooths.path = "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/norm//smooths_norm.csv", smooths.statistics = statistics_norm)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Normalization_smooths.jpg", device = "pdf", dpi = 500, width = 1.85 , height = 1.65)
 ```
 
 ### *Atlas*
@@ -206,15 +218,18 @@ gamsmooths <- inner_join(gamsmooths, statistics_schaefer, by="label", sort = F)
 gamsmooths.lh <- gamsmooths[1:37600,]
     
 smooth.plot <- ggplot(gamsmooths.lh,aes(age,est,group=index,color=GAM.age.partialR2)) + 
-  geom_line(size=.8, alpha = .8) + 
+  geom_line(size = .3, alpha = .8) + 
   paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c((quantile(statistics_schaefer$GAM.age.partialR2, probs = seq(0, 1, 0.05))[2]), (quantile(statistics_schaefer$GAM.age.partialR2, probs = seq(0, 1, 0.1))[18])), oob = squish) +
   theme_classic() +
   labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n" ) +
   theme(legend.position = "none") +
-  theme(axis.text = element_text(size=15, family = "Arial", color = c("black")), axis.title = element_text(size=15, family = "Arial", color = c("black"))) +
-  scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
+  theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 4, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
+  scale_x_continuous(breaks = c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) +
+  scale_y_continuous(breaks = c(-.2, 0, .2), expand = c(0.0, 0.08))
 
 smooth.plot
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Schaefer_smooths.jpg", device = "pdf", dpi = 500, width = 1.85 , height = 1.65)
 ```
 
 ```{r include=FALSE}
@@ -296,7 +311,7 @@ gam.derivatives.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/F
 
 Derivation-Axis correlation plot function
 ```{r}
-plot_axis_correlation <- function(derivcorrs.path){
+plot_axis_correlation <- function(derivcorrs.path, return_plot = TRUE){
 
 #Read in derivative correlations
   deriv.SAaxis.posteriorcorrs <- read.table(derivcorrs.path, header = F, sep = ",")
@@ -326,8 +341,8 @@ plot_axis_correlation <- function(derivcorrs.path){
   cor.credible.intervals <- cbind(cor.credible.intervals, (gam.derivatives.glasser %>% group_by(age) %>% group_keys()))
   cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancorr 
   colnames(cor.credible.intervals) <- c("lower","upper","age","SA.correlation")
+  max.corr.value <- cor.credible.intervals %>% filter(round(age,4) == age.max.corr.median) %>% select(SA.correlation)
   
-#Window of null sensorimotor-association axis correlation
   cor.credible.intervals$max.corr.CI <- (cor.credible.intervals$age > age.max.corr.lower & cor.credible.intervals$age < age.max.corr.upper) #add a column that indicates whether each age is included in the age of maximal correlation credible interval (T/F)
   cor.credible.intervals$max.cor.window <- cor.credible.intervals$age*cor.credible.intervals$max.corr.CI #add a column that only includes ages in this interval
   cor.credible.intervals$max.cor.window[cor.credible.intervals$max.cor.window == 0] <- NA
@@ -337,25 +352,26 @@ plot_axis_correlation <- function(derivcorrs.path){
   cor.credible.intervals$zero.corr.window[cor.credible.intervals$zero.corr.window == 0] <- NA
   
   derivative.correlation.plot <- ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
-    geom_line(size=1.5) +
-    geom_ribbon(alpha=.2, fill=c("grey30")) +
-    labs(x="\nAge", y="Developmental Alignment to the S-A Axis\n") +
-    geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill="#F4A674") +
-    geom_ribbon(aes(x = zero.corr.window, y = SA.correlation), fill="#952162") +  
-    theme(
-    axis.title.x=element_text(size=15, color = "black"),
-    axis.title.y=element_text(size=15, color = "black"),
-    axis.line = element_line(color = "black"),
-    axis.text=element_text(size=15, color = "black"),
-    panel.background=element_blank(),legend.position = "none") +
-    scale_y_continuous(breaks=c(0,0.2,0.4,0.6), limits=c(-.13,.75)) +
-    scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), limits = c(8, 23), expand = c(0,0))
+    geom_line(size = .3) +
+    geom_ribbon(alpha = .2, fill = c("grey30")) +
+    labs(x="\nAge", y="Developmental Alignment to the Axis\n") +
+    geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill = "#ba275f") +
+    theme_classic() + 
+    theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 4, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22)) +
+    scale_y_continuous(breaks = c(0, 0.2 ,0.4, 0.6), limits = c(-.132,.77)) +
+    scale_x_continuous(breaks = c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,0))
+
   
   rm(deriv.SAaxis.posteriorcorrs)
   rm(cor.credible.intervals)
   gc()
   
-  derivative.correlation.plot
+  if(return_plot == TRUE){
+  return(derivative.correlation.plot)}
+  
+  if(return_plot == FALSE){
+  maxcorr <- cbind(age.max.corr.median, max.corr.value)
+  return(maxcorr)}
 }
 ```
 
@@ -363,34 +379,70 @@ plot_axis_correlation <- function(derivcorrs.path){
 
 ```{r, message=F, warning=F}
 plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/lowmotion/axiscorrelation_lowmotion.csv")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Lowmotion_axiscorrelation.jpg", device = "pdf", dpi = 500, width = 1.78 , height = 1.65)
+```
+
+```{r, message=F, warning=F}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/lowmotion/axiscorrelation_lowmotion.csv", return_plot = FALSE)
 ```
 
 ### *Psychiatry exclusions*
 
 ```{r}
 plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/ltn/axiscorrelation_ltn.csv")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Psychiatry_axiscorrelation.jpg", device = "pdf", dpi = 500, width = 1.78 , height = 1.65)
+```
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/ltn/axiscorrelation_ltn.csv", return_plot = FALSE)
 ```
 
 ### *Vascular control*
 
 ```{r}
 plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/cbf/axiscorrelation_cbf.csv")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Vascularcontrol_axiscorrelation.jpg", device = "pdf", dpi = 500, width = 1.78 , height = 1.65)
+```
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/cbf/axiscorrelation_cbf.csv", return_plot = FALSE)
 ```
 
 ### *T2 signal control*
 
 ```{r}
 plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/T2star/axiscorrelation_T2.csv")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/T2signalcontrol_axiscorrelation.jpg", device = "pdf", dpi = 500, width = 1.78 , height = 1.65)
+```
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/T2star/axiscorrelation_T2.csv", return_plot = FALSE)
 ```
 
 ### *Normalization*
 
 ```{r}
 plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/norm/axiscorrelation_norm.csv")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Normalization_axiscorrelation.jpg", device = "pdf", dpi = 500, width = 1.78 , height = 1.65)
+```
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/sensitivity_analyses/norm/axiscorrelation_norm.csv", return_plot = FALSE)
 ```
 
 ### *Atlas*
 
 ```{r}
 plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_schaefer.csv")
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure5/Schaefer_axiscorrelation.jpg", device = "pdf", dpi = 500, width = 1.78 , height = 1.65)
+```
+
+```{r}
+plot_axis_correlation("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_posteriorderivative_correlation_byage_schaefer.csv", return_plot = FALSE)
 ```
