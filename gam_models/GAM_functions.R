@@ -355,6 +355,28 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
   if(return_posterior_derivatives == TRUE)
     return(posterior.derivs.long)
 }
+
+#### FIT GAM FACTOR-SMOOTH INTERACTION FUNCTION ####
+##Function to fit a GAM with a factor-smooth interaction and obtain statistics for the interaction term 
+gam.factorsmooth.interaction <- function(measure, atlas, dataset, region, smooth_var, int_var, covariates, knots, set_fx = FALSE){
+  
+  #Fit the gam
+  dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
+  gam.data <- get(dataname)
+  parcel <- region
+  region <- str_replace(region, "-", ".")
+  modelformula <- as.formula(sprintf("%1$s ~ s(%2$s, k = %3$s, fx = %4$s) + s(%2$s, by = %5$s, k = %3$s, fx = %4$s) + %6$s", region, smooth_var, knots, set_fx, int_var, covariates))
+  gam.model <- gam(modelformula, method = "REML", data = gam.data)
+  gam.results <- summary(gam.model)
+  
+  #GAM statistics
+  #F value for the smooth term and GAM-based significance of the smooth term
+  gam.int.F <- gam.results$s.table[2,3]
+  gam.int.pvalue <- gam.results$s.table[2,4]
+
+  interaction.stats <- cbind(parcel, gam.int.F, gam.int.pvalue)
+  return(interaction.stats)
+}
   
 #### FIT GAM SMOOTH WITH A COVARIATE OF INTEREST FUNCTION ####
 ##Function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariate of interest + control covariates)) and save out statistics for the first covariate
