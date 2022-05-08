@@ -356,7 +356,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
     return(posterior.derivs.long)
 }
 
-#### FIT GAM FACTOR-SMOOTH INTERACTION FUNCTION ####
+#### FIT GAM FACTOR-SMOOTH INTERACTION FUNCTION #### 
 ##Function to fit a GAM with a factor-smooth interaction and obtain statistics for the interaction term 
 gam.factorsmooth.interaction <- function(measure, atlas, dataset, region, smooth_var, int_var, covariates, knots, set_fx = FALSE){
   
