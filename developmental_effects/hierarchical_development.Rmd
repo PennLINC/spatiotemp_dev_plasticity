@@ -28,6 +28,7 @@ library(matrixStats)
 library(scales)
 library(Hmisc)
 library(tidyr)
+library(cocor)
 extrafont::loadfonts()
 source("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/R/perm.sphere.p.R")
 ```
@@ -118,6 +119,14 @@ gam.derivatives.glasser <- gam.derivatives.glasser %>% filter(SNR.mask != 0)
 ```
 
 ```{r}
+gam.sex.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_agebysex_interaction_glasser.csv") #GAM age spline by sex interaction statistics, generated with fitGAMs_fluctuationamplitude_environment.R
+
+#create df.sex with GAM results, S-A axis, and SNR mask
+df.list <- list(gam.sex.glasser, S.A.axis, SNR.mask) #dfs to merge
+df.sex <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list) 
+```
+
+```{r}
 gam.env.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_environment_statistics_glasser.csv") #GAM environment statistics, generated with fitGAMs_fluctuationamplitude_environment.R
 
 #create df.env with GAM results, S-A axis, and SNR mask
@@ -156,6 +165,14 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), po
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/Brainmap_ageeffect.jpg", device = "pdf", dpi = 500, width = 3 , height = 2)
 ```
+
+## Age spline by sex interactions
+
+Number of cortical regions show significance age*sex interactions 
+```{r}
+sum(p.adjust(df.sex$GAM.agexsex.pvalue, method=c("fdr")) < 0.05) #FDR-corrected p-values age by sex interaction testing whether the age spline differs between males and females
+```
+
 
 ## Cortical smooth functions
 
@@ -366,17 +383,17 @@ perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$myelin.partialR2, perm.
 
 Correlation plot
 ```{r}
-ggplot(df.dev, aes(x = myelin.partialR2, y = GAM.age.partialR2, fill = myelin.partialR2)) + 
-geom_point(color = df.dev$myelin.partialR2, shape = 21, size = 1.5) +
-paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) +
-paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) +
+ggplot(df.dev, aes(x = myelin.partialR2, y = GAM.age.partialR2, fill = GAM.age.partialR2)) + 
+geom_point(aes(color = GAM.age.partialR2), shape = 21, size = 1.5) +
+paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
+paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
 labs(x="\nMyelin Age Effect", y="Fluctuation Amplitude Age Effect\n") +
 geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .75) +
 theme_classic() + 
 theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Ageeffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.68 , height = 2.1)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Ageeffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.68 , height = 2.175)
 ```
 
 ## Temporal development
@@ -418,10 +435,10 @@ perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$myelin.maxd
 
 Correlation plot
 ```{r, message=F, warning=F}
-ggplot(late.decrease, aes(x = myelin.maxdev, y = minage.decrease, fill = myelin.maxdev)) + 
-geom_point(aes(color = late.decrease$myelin.maxdev), shape = 21, size = 1.2) +
-paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(10,17.5), oob = squish) +
-paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = 1, limits = c(10,17.5), oob = squish) +
+ggplot(late.decrease, aes(x = myelin.maxdev, y = minage.decrease, fill = minage.decrease)) + 
+geom_point(aes(color = minage.decrease), shape = 21, size = 1.2) +
+paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10, 17.5), oob = squish) +
+paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10, 17.5), oob = squish) +
 labs(x="\nMyelin Age Effect", y="Fluctuation Amplitude Age Effect\n") +
 geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .75) +
 theme_classic() + 
@@ -429,7 +446,7 @@ theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
 scale_y_continuous(breaks=c(10, 12, 14, 16, 18, 20))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.1)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.175)
 ```
 
 # Fluctuation Amplitude Development Unfolds along the Hierarchical Sensorimotor-Association Axis
@@ -518,13 +535,14 @@ geom_point(aes(color = SA.axis), shape = 21, size = 1.2) +
 scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
 scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = 180) +
 labs(x="\nSensorimtor-Association Axis Rank", y="Principal Developmental Axis Loading\n") +
-geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .5) +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .25) +
 theme_classic() + 
 theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22))
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/AxisPC1_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
 ```
+
 Principal developmental axis brain map 
 ```{r}
 ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill = PC1), position = c("stacked"), hemisphere = "right") + 
@@ -533,6 +551,89 @@ labs(fill = "") +
 scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.05, limits = c(-0.11,0.008), oob = squish) + theme(legend.text = element_blank())
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/PC1.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
+```
+
+Developmental PC1 correlation with anatomical, functional, and evolutionary cortical hierarchies
+```{r}
+maps <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/Glasser360_MMP_WholeBrain/brainmaps_glasser.csv")
+maps$label <- glasser.parcel.labels$label
+df.dev.spin <- left_join(df.dev.spin, maps, by="label")
+maps <- merge(PC1, maps, by = "label")
+maps <- merge(maps, S.A.axis, by = "label")
+```
+
+*Anatomical hierarchy*
+```{r}
+cor.test(maps$PC1, maps$T1T2ratio, method = c("spearman"))
+perm.sphere.p(df.dev.spin$PC1, df.dev.spin$T1T2ratio, perm.id.full, corr.type='spearman')
+cocor.dep.groups.overlap(
+  r.jk = (cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))$estimate), 
+  r.jh = (abs(cor.test(maps$PC1, maps$T1T2ratio, method=c("spearman"))$estimate)), 
+  r.kh = (abs(cor.test(maps$T1T2ratio, maps$SA.axis, method=c("spearman"))$estimate)), 
+  n = 336, alternative = "two.sided", test = "hittner2003")
+```
+
+*Functional hierarchy*
+```{r}
+cor.test(maps$PC1, maps$G1.fMRI, method = c("spearman"))
+perm.sphere.p(df.dev.spin$PC1, df.dev.spin$G1.fMRI, perm.id.full, corr.type='spearman')
+cocor.dep.groups.overlap(
+  r.jk = (cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))$estimate), 
+  r.jh = (abs(cor.test(maps$PC1, maps$G1.fMRI, method=c("spearman"))$estimate)), 
+  r.kh = (abs(cor.test(maps$G1.fMRI, maps$SA.axis, method=c("spearman"))$estimate)), 
+  n = 336, alternative = "two.sided", test = "hittner2003")
+```
+
+*Evolutionary hierarchy*
+```{r}
+cor.test(maps$PC1, maps$Evolution.Expansion, method = c("spearman"))
+perm.sphere.p(df.dev.spin$PC1, df.dev.spin$Evolution.Expansion, perm.id.full, corr.type='spearman')
+cocor.dep.groups.overlap(
+  r.jk = (cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))$estimate), 
+  r.jh = (abs(cor.test(maps$PC1, maps$Evolution.Expansion, method=c("spearman"))$estimate)), 
+  r.kh = (abs(cor.test(maps$Evolution.Expansion, maps$SA.axis, method=c("spearman"))$estimate)), 
+  n = 336, alternative = "two.sided", test = "hittner2003")
+```
+
+Developmental PC1 correlation with S-A axis ranks within mesulam cortical zones
+```{r}
+glasser.assignments.type <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360-mesulam_economo_yeo-assignments.csv")
+glasser.assignments.type <- merge(glasser.assignments.type, S.A.axis, by = "label", sort = F)
+glasser.assignments.type <- merge(PC1, glasser.assignments.type, by = "label", sort = F)
+```
+
+```{r}
+mesulam.corr.estimates <- glasser.assignments.type %>%
+  group_by(mesulam_assignment) %>%
+  do(correlation = cor.test(.$SA.axis, .$PC1, method = c("spearman"))$estimate) %>%
+  unnest(cols = c(correlation))
+mesulam.corr.pvalues <- glasser.assignments.type %>%
+  group_by(mesulam_assignment) %>%
+  do(pvalue = cor.test(.$SA.axis, .$PC1, method = c("spearman"))$p.value) %>%
+  unnest(cols = c(pvalue))
+mesulam <- merge(mesulam.corr.estimates, mesulam.corr.pvalues)
+mesulam$p.fdr <- p.adjust(mesulam$pvalue, method = c("fdr"))
+mesulam
+```
+
+```{r}
+idiotypic <- glasser.assignments.type %>% filter(mesulam_assignment == "idiotypic")
+summary(idiotypic$SA.axis)
+```
+
+```{r}
+unimodal <- glasser.assignments.type %>% filter(mesulam_assignment == "unimodal")
+summary(unimodal$SA.axis)
+```
+
+```{r}
+heteromodal <- glasser.assignments.type %>% filter(mesulam_assignment == "heteromodal")
+summary(heteromodal$SA.axis)
+```
+
+```{r}
+paralimbic <- glasser.assignments.type %>% filter(mesulam_assignment == "paralimbic")
+summary(paralimbic$SA.axis)
 ```
 
 # The Neurodevelopmental Hierarchy is Dominant through Adolescence
@@ -562,11 +663,28 @@ age10.derivs <- gam.derivatives.glasser %>% filter(age == 10.03015)
 
 ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish) #limits = c(-0.11,0.008), oob = squish
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish)
 
 rm(age10.derivs)
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age10_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
+```
+
+Age 10 derivative-axis correlation plot
+```{r}
+ggplot(age10.derivs, aes(x = SA.axis, y = derivative, fill = derivative)) + 
+geom_point(aes(color = derivative), shape = 21, size = .1) +
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
+labs(x="\nSensorimtor-Association Axis Rank", y="Derivative\n") +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .35) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_blank(), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .15), axis.ticks = element_line(size = .15)) +
+scale_y_continuous(limits = c(-.05, .055), oob = squish)
+
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age10_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
 Age 15 derivative map
@@ -575,11 +693,27 @@ age15.derivs <- gam.derivatives.glasser %>% filter(age == 15.02429)
 
 ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish) 
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) 
 
 rm(age15.derivs)
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age15_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
+```
+
+Age 15 derivative-axis correlation plot
+```{r}
+ggplot(age15.derivs, aes(x = SA.axis, y = derivative, fill = derivative)) + 
+geom_point(aes(color = derivative), shape = 21, size = .1) +
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
+labs(x="\nSensorimtor-Association Axis Rank", y="Derivative\n") +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .35) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_blank(), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .15), axis.ticks = element_line(size = .15)) +
+scale_y_continuous(limits = c(-.05, .055), oob = squish)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age15_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
 Age 20 derivative map
@@ -588,11 +722,27 @@ age20.derivs <- gam.derivatives.glasser %>% filter(age == 20.01843)
 
 ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish)
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,c0.005), oob = squish)
 
 rm(age20.derivs)
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
+```
+
+Age 20 derivative-axis correlation plot
+```{r}
+ggplot(age20.derivs, aes(x = SA.axis, y = derivative, fill = derivative)) + 
+geom_point(aes(color = derivative), shape = 21, size = .1) +
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
+labs(x="\nSensorimtor-Association Axis Rank", y="Derivative\n") +
+geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .35) +
+theme_classic() + 
+theme(legend.position = "none") +
+theme(axis.text = element_blank(), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .15), axis.ticks = element_line(size = .15)) +
+scale_y_continuous(limits = c(-.05, .055), oob = squish)
+ 
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
 Derivative by sensorimotor-association axis plot
@@ -610,7 +760,8 @@ ggplot(data=gam.derivatives.glasser,aes(x = age, y = SA.axis, group = index)) +
    theme(axis.text = element_text(size = 7, family = "Arial", color = c("black")), axis.title = element_text(size = 7, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22), legend.text = element_text(size = 6, family = "Arial", color = c("black"))) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))   
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_rank_age_plot.pdf", device = "pdf", dpi = 500, width = 3.7 , height = 4.1)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_rank_age_plot.pdf", device = "pdf", dpi = 500, width = 3.7 , height = 4.9)
+
 ```
 
 ## Age-specific correlation between derivates and the S-A Axis
@@ -748,7 +899,7 @@ ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), posit
   scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-5,5), oob=squish) +
   theme(legend.text = element_text(size = 6, family = "Arial", color = c("black")))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/Brainmap_enveffect.jpg", device = "pdf", dpi = 500, width = 3.55 , height = 2.55)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/Brainmap_enveffect.jpg", device = "pdf", dpi = 500, width = 3.05 , height = 2.25)
 ```
 
 ## Correlation between environmental effects and the sensorimotor-association axis
@@ -774,19 +925,18 @@ Correlation plot
 ```{r, message=F}
 df.env$significant <- p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05
 
-ggplot(df.env, aes(x = SA.axis, y = GAM.env.tvalue, fill = SA.axis, color = SA.axis)) + 
-geom_point(aes(size = significant), shape = 21) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
-scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, midpoint = 180) +
-scale_size_manual(values = c(.7, 1.2)) +
-labs(x="\nSensorimtor-Association Axis Rank", y="Developmental Environment Effect\n") +
+ggplot(df.env, aes(x = SA.axis, y = GAM.env.tvalue, fill = GAM.env.tvalue, color = significant)) + 
+geom_point(size = 1.5, stroke = .12, pch = 21) +
+scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits = c(-5,5), oob = squish) +
+scale_color_manual(values = c("white","black")) +
+labs(x="\nSensorimtor-Association Axis Rank", y="Environment Effect\n") +
 geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black", size = .5) +
 theme_classic() + 
 theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
-scale_y_continuous(breaks = c(-3, 0, 3, 6))
+scale_y_continuous(breaks = c(-5, 0, 5))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/AxisEnv_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.37 , height = 2.15)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/AxisEnv_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 1.7)
 ```
 
 * controlling for parental education
