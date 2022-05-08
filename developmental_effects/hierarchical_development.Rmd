@@ -557,15 +557,12 @@ Developmental PC1 correlation with anatomical, functional, and evolutionary cort
 ```{r}
 maps <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/S-A_ArchetypalAxis/Glasser360_MMP_WholeBrain/brainmaps_glasser.csv")
 maps$label <- glasser.parcel.labels$label
-df.dev.spin <- left_join(df.dev.spin, maps, by="label")
 maps <- merge(PC1, maps, by = "label")
-maps <- merge(maps, S.A.axis, by = "label")
 ```
 
 *Anatomical hierarchy*
 ```{r}
 cor.test(maps$PC1, maps$T1T2ratio, method = c("spearman"))
-perm.sphere.p(df.dev.spin$PC1, df.dev.spin$T1T2ratio, perm.id.full, corr.type='spearman')
 cocor.dep.groups.overlap(
   r.jk = (cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))$estimate), 
   r.jh = (abs(cor.test(maps$PC1, maps$T1T2ratio, method=c("spearman"))$estimate)), 
@@ -576,7 +573,6 @@ cocor.dep.groups.overlap(
 *Functional hierarchy*
 ```{r}
 cor.test(maps$PC1, maps$G1.fMRI, method = c("spearman"))
-perm.sphere.p(df.dev.spin$PC1, df.dev.spin$G1.fMRI, perm.id.full, corr.type='spearman')
 cocor.dep.groups.overlap(
   r.jk = (cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))$estimate), 
   r.jh = (abs(cor.test(maps$PC1, maps$G1.fMRI, method=c("spearman"))$estimate)), 
@@ -587,7 +583,6 @@ cocor.dep.groups.overlap(
 *Evolutionary hierarchy*
 ```{r}
 cor.test(maps$PC1, maps$Evolution.Expansion, method = c("spearman"))
-perm.sphere.p(df.dev.spin$PC1, df.dev.spin$Evolution.Expansion, perm.id.full, corr.type='spearman')
 cocor.dep.groups.overlap(
   r.jk = (cor.test(PC1$PC1, df.dev$SA.axis, method=c("spearman"))$estimate), 
   r.jh = (abs(cor.test(maps$PC1, maps$Evolution.Expansion, method=c("spearman"))$estimate)), 
@@ -598,7 +593,6 @@ cocor.dep.groups.overlap(
 Developmental PC1 correlation with S-A axis ranks within mesulam cortical zones
 ```{r}
 glasser.assignments.type <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360-mesulam_economo_yeo-assignments.csv")
-glasser.assignments.type <- merge(glasser.assignments.type, S.A.axis, by = "label", sort = F)
 glasser.assignments.type <- merge(PC1, glasser.assignments.type, by = "label", sort = F)
 ```
 
@@ -665,8 +659,6 @@ ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
   theme_void() + 
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish)
 
-rm(age10.derivs)
-
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age10_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
@@ -695,8 +687,6 @@ ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
   theme_void() + 
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) 
 
-rm(age15.derivs)
-
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age15_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
@@ -722,9 +712,7 @@ age20.derivs <- gam.derivatives.glasser %>% filter(age == 20.01843)
 
 ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
-  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,c0.005), oob = squish)
-
-rm(age20.derivs)
+  scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish)
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
