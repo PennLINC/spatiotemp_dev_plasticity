@@ -72,6 +72,29 @@ write.csv(gam.age.schaefer, "/cbica/projects/spatiotemp_dev_plasticity/Fluctuati
 rm(gam.age.schaefer)
 gc()
 
+#### Region-wise Age by Sex GAM Smooth Interactions ####
+
+fluctuations.glasser.pnc$sex.ordered <- ordered(fluctuations.glasser.pnc$sex, levels = c(1,2))
+
+gam.sex.glasser <- matrix(data=NA, nrow=360, ncol=3) #matrix to save gam.factorsmooth.interaction output to
+
+for(row in c(1:nrow(glasser.parcel.labels))){ #for each glasser region
+  region <- glasser.parcel.labels$label[row] 
+  INT.RESULTS <- gam.factorsmooth.interaction(measure = "fluctuations", atlas = "glasser", dataset = "pnc", 
+                                region = region, smooth_var = "age", int_var = "sex.ordered", covariates = "sex.ordered + RMSmotion", 
+                                knots = 3, set_fx = TRUE) #run the gam.factorsmooth.interaction function
+  gam.sex.glasser[row,] <- INT.RESULTS} #and append results to output df 
+
+gam.sex.glasser <- as.data.frame(gam.sex.glasser)
+colnames(gam.sex.glasser) <- c("label", #region name
+                               "GAM.agexsex.Fvalue", #GAM F-value for the age-sex interaction
+                               "GAM.agexsex.pvalue") #GAM p-value for the age-sex interaction
+cols = c(2:3)    
+gam.sex.glasser[,cols] = apply(gam.sex.glasser[,cols], 2, function(x) as.numeric(as.character(x))) #format as numeric
+write.csv(gam.sex.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_agebysex_interaction_glasser.csv", row.names = F, quote = F)
+rm(gam.sex.glasser)
+gc()
+                            
 #### Region-wise GAM Fitted Value Predictions ####
 
 np <- 200 #number of ages to predict fluctuation amplitude at
