@@ -45,7 +45,7 @@ cols = c(2:5)
 gam.env.edu.glasser[,cols] = apply(gam.env.edu.glasser[,cols], 2, function(x) as.numeric(as.character(x)))
 
 ## Save results
-gam.env.glasser <- merge(gam.env.glasser, gam.env.edu.glasser, by="label")
+gam.env.glasser <- merge(gam.env.glasser, gam.env.edu.glasser, by="label", sort = F)
 write.csv(gam.env.glasser, "/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_environment_statistics_glasser.csv", row.names = F, quote = F)
 
 
