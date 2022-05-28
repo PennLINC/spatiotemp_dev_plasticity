@@ -797,6 +797,29 @@ scale_x_continuous(breaks=c(14.5, 15, 15.5))
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/AgeMaxCorr_histogram.pdf", device = "pdf", dpi = 500, width = 1.03 , height = 1.02)
 ```
 
+### Age of first null (zero) sensorimotor-association axis correlation: posterior median value + 95% credible interval
+
+```{r, warning = F}
+age.zero.corr <- deriv.SAaxis.posteriorcorrs %>% #find the age at which the correlation first hits 0 for each draw
+    summarise(across(contains("draw"),
+                     .fns = function(x){
+                      round(min(deriv.SAaxis.posteriorcorrs$age[round(x, digits = 1) == 0]),4)
+                     }))
+age.zero.corr <- t(age.zero.corr)
+age.zero.corr.median <- median(age.zero.corr) #median age #bayes
+age.zero.corr.CI <- quantile(age.zero.corr, probs = c(0.025, 0.975)) #compute the credible interval based on all draws
+age.zero.corr.lower <- age.zero.corr.CI[[1]]
+age.zero.corr.upper <- age.zero.corr.CI[[2]]
+```
+
+```{r}
+age.zero.corr.median
+```
+
+```{r}
+age.zero.corr.CI
+```
+
 ### Sensorimotor-association axis correlation value at each age: posterior median values + 95% credible interval
 
 ```{r}
@@ -824,13 +847,6 @@ cor.credible.intervals$zero.corr.window <- cor.credible.intervals$age*cor.credib
 cor.credible.intervals$zero.corr.window[cor.credible.intervals$zero.corr.window == 0] <- NA
 ```
 
-```{r}
-min(cor.credible.intervals$age[cor.credible.intervals$zero.corr.CI == TRUE])
-```
-
-```{r}
-max(cor.credible.intervals$age[cor.credible.intervals$zero.corr.CI == TRUE])
-```
 
 Sensorimotor-association axis development sliding window plot
 ```{r}
