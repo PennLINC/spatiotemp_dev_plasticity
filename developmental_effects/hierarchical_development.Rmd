@@ -141,7 +141,7 @@ df.env.spin$GAM.env.edu.tvalue[df.env.spin$SNR.mask == 0] <- NA
 df.env <- df.env %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
 ```
 
-# Age-Dependent Changes in Spontaneous Fluctuations Vary Across the Cortex
+# Age-dependent changes in intrinsic fMRI fluctuations vary across the cortex
 
 ## Significant age-related changes in fluctuation amplitude
 
@@ -349,7 +349,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
   
 ```
 
-# Spatiotemporal Development of Fluctuation Amplitude Follows Intracortical Myelin Growth  
+# The development of intrinsic fMRI fluctuations is linked to the maturation of a key regulator of plasticity  
 
 ## Spatial development
 
@@ -449,7 +449,7 @@ scale_y_continuous(breaks=c(10, 12, 14, 16, 18, 20))
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.175)
 ```
 
-# Fluctuation Amplitude Development Unfolds along the Hierarchical Sensorimotor-Association Axis
+# The development of intrinsic fMRI fluctuations aligns with the hierarchical sensorimotor-association axis
 
 Sensorimotor-association axis
 ```{r, warning=F, message=F}
@@ -590,47 +590,7 @@ cocor.dep.groups.overlap(
   n = 336, alternative = "two.sided", test = "hittner2003")
 ```
 
-Developmental PC1 correlation with S-A axis ranks within mesulam cortical zones
-```{r}
-glasser.assignments.type <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/Maps/parcellations/surface/glasser360-mesulam_economo_yeo-assignments.csv")
-glasser.assignments.type <- merge(PC1, glasser.assignments.type, by = "label", sort = F)
-```
-
-```{r}
-mesulam.corr.estimates <- glasser.assignments.type %>%
-  group_by(mesulam_assignment) %>%
-  do(correlation = cor.test(.$SA.axis, .$PC1, method = c("spearman"))$estimate) %>%
-  unnest(cols = c(correlation))
-mesulam.corr.pvalues <- glasser.assignments.type %>%
-  group_by(mesulam_assignment) %>%
-  do(pvalue = cor.test(.$SA.axis, .$PC1, method = c("spearman"))$p.value) %>%
-  unnest(cols = c(pvalue))
-mesulam <- merge(mesulam.corr.estimates, mesulam.corr.pvalues)
-mesulam$p.fdr <- p.adjust(mesulam$pvalue, method = c("fdr"))
-mesulam
-```
-
-```{r}
-idiotypic <- glasser.assignments.type %>% filter(mesulam_assignment == "idiotypic")
-summary(idiotypic$SA.axis)
-```
-
-```{r}
-unimodal <- glasser.assignments.type %>% filter(mesulam_assignment == "unimodal")
-summary(unimodal$SA.axis)
-```
-
-```{r}
-heteromodal <- glasser.assignments.type %>% filter(mesulam_assignment == "heteromodal")
-summary(heteromodal$SA.axis)
-```
-
-```{r}
-paralimbic <- glasser.assignments.type %>% filter(mesulam_assignment == "paralimbic")
-summary(paralimbic$SA.axis)
-```
-
-# The Neurodevelopmental Hierarchy is Dominant through Adolescence
+# Neurodevelopment is hierarchical through adolescence 
 
 ## Age-specific fluctuation amplitude derivatives
 
@@ -835,7 +795,13 @@ cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancorr
 colnames(cor.credible.intervals) <- c("lower","upper","age","SA.correlation")
 ```
 
-### Window of null sensorimotor-association axis correlation
+Maximal correlation value
+
+```{r}
+cor.credible.intervals %>% arrange(desc(SA.correlation)) %>% slice_head()
+```
+
+### Sensorimotor-association axis development sliding window plot
 
 ```{r}
 cor.credible.intervals$max.corr.CI <- (cor.credible.intervals$age > age.max.corr.lower & cor.credible.intervals$age < age.max.corr.upper) #add a column that indicates whether each age is included in the age of maximal correlation credible interval (T/F)
@@ -847,8 +813,6 @@ cor.credible.intervals$zero.corr.window <- cor.credible.intervals$age*cor.credib
 cor.credible.intervals$zero.corr.window[cor.credible.intervals$zero.corr.window == 0] <- NA
 ```
 
-
-Sensorimotor-association axis development sliding window plot
 ```{r}
 ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
 geom_line(size = .5) +
@@ -863,39 +827,24 @@ scale_y_continuous(breaks=c(0,0.2,0.4,0.6))
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_SAaxis_correlation_plot.pdf", device = "pdf", dpi = 500, width = 3.82 , height = 2.35)
 ```
 
-# Fluctuation Amplitude Variability is Linked to Variability in the Developmental Environment
+# Individual differences in intrinsic fMRI fluctuations are associated with differences in youth’s developmental environment
 
 ## Significant associations between fluctuation amplitude and environmental factors
 
 Number of cortical regions showing significant environment effects
 
-* original model
-
 ```{r}
 sum(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05) 
 ```
 
-* controlling for parental education
-
-```{r}
-sum(p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05)
-```
-
 Percent of cortical regions showing significant environment effects
-
-* original model
 
 ```{r}
 (sum(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05))/(nrow(df.env))*100 
 ```
 
-* controlling for parental education
-
-```{r}
-(sum(p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05))/(nrow(df.env))*100 
-```
-
 Across-cortex environment effect size and direction
+
 ```{r, warning=F, message=F}
 ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), position = c("stacked")) + 
   theme_void() + 
@@ -907,8 +856,6 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 ## Correlation between environmental effects and the sensorimotor-association axis
-
-* original model
 
 ```{r}
 #all regions
@@ -926,6 +873,7 @@ perm.sphere.p(df.env.spin$GAM.env.tvalue.significant, df.env.spin$SA.axis, perm.
 ```
 
 Correlation plot
+
 ```{r, message=F}
 df.env$significant <- p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05
 
@@ -941,21 +889,4 @@ theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), 
 scale_y_continuous(breaks = c(-5, 0, 5))
 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/AxisEnv_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 1.7)
-```
-
-* controlling for parental education
-
-```{r}
-#all regions
-cor.test(df.env$GAM.env.edu.tvalue, df.env$SA.axis, method=c("spearman"))
-perm.sphere.p(df.env.spin$GAM.env.edu.tvalue, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
-```
-
-```{r}
-#significant regions
-df.env.spin$GAM.env.edu.tvalue.significant <- df.env.spin$GAM.env.edu.tvalue*(p.adjust(df.env.spin$Anova.env.edu.pvalue, method=c("fdr")) < 0.05)
-df.env.spin$GAM.env.edu.tvalue.significant[df.env.spin$GAM.env.edu.tvalue.significant == 0] <- NA
-
-cor.test(df.env.spin$GAM.env.edu.tvalue.significant, df.env.spin$SA.axis, method=c("spearman"))
-perm.sphere.p(df.env.spin$GAM.env.edu.tvalue.significant, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
 ```
