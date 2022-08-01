@@ -1,7 +1,7 @@
 <br>
 <br>
-# Spontaneous Activity Development Unfolds Hierarchically Along the Sensorimotor-Association Axis 
-*Spontaneous activity critically refines cortical circuits in the developing brain. In the rodent brain, spontaneous activity in sensory regions evolves from strong and synchronized to sparse and decorrelated as the cortex transitions from plastic to mature. Synchronized bursts in intrinsic activity are therefore considered a functional hallmark of plastic cortices. Here, we leverage this functional hallmark to characterize the developmental unfolding of activity-indexed plasticity in the human brain during youth. We hypothesized that age-related changes in spontaneous activity would be spatially and temporally governed by the sensorimotor-association (S-A) axis of cortical organization and provide evidence for hierarchical neurodevelopment in childhood and adolescence. Elucidating spatially-localized windows of enhanced and diminished cortical plasticity will help to identify windows wherein youth educational and psychiatric interventions may be maximally beneficial.* 
+# Intrinsic Activity Develops Along a Sensorimotor-Association Cortical Axis in Youth
+*Animal studies of neurodevelopmental plasticity have shown that intrinsic brain activity evolves from high amplitude and globally synchronized to suppressed and sparse as plasticity declines and the cortex matures. Leveraging functional MRI data from 1033 individuals (8-23 years), we reveal that this stereotyped refinement of intrinsic activity occurs during human development and provides evidence for a cortical gradient of neurodevelopmental plasticity during childhood and adolescence. Specifically, we demonstrate that declines in the amplitude of intrinsic activity are initiated heterochronously across regions, coupled to the maturation of a plasticity-restricting structural feature, and temporally staggered along a hierarchical sensorimotor-association axis from ages 8 to 18. Youth from disadvantaged environments exhibit reduced intrinsic activity in regions further up the sensorimotor-association axis, suggestive of a reduced potential for plasticity in late-maturing cortices. Our results uncover a hierarchical axis of neurodevelopment and offer insight into the temporal sequence of protracted neurodevelopmental plasticity in humans. Continued discovery of temporal axes of development across human’s multi-decade maturational course will provide evidence of how plasticity is distributed across brain regions at different developmental stages. Such insights into the temporal patterning of plasticity may help to guide interventions in youth that align with each child’s neurotemporal context.* 
 
 ### Project Lead
 Valerie J. Sydnor
@@ -29,6 +29,7 @@ RBC PNC-Health Exclude (primary) and LTN (sensitivity)
 
 ### Conference Presentations
 - Oral presentation *Developmental Refinement of Spontaneous Activity Varies Across Sensorimotor and Association Cortices* selected for "From the Womb to Wisdom" oral session at The Organization for Human Brain Mapping Annual Meeting, June 2022. 
+- Flash talk at the Flux Society Congress, September 2022.
 - Poster accepted at The Society of Biological Psychiatry Annual Meeting, April 2022 as a Travel Awardee.
 
 ### Cubic Project Directory
