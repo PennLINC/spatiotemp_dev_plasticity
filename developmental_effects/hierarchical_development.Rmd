@@ -1,5 +1,5 @@
 ---
-title: "Fluctuation Amplitude Development Unfolds Hierarchically Along the Sensorimotor-Association Axis"
+title: "Intrinsic Activity Develops Along a Sensorimotor-Association Cortical Axis in Youth"
 author: "Valerie Jill Sydnor"
 output:
   html_document:
@@ -136,7 +136,6 @@ df.env <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list)
 #create df.env.spin formatted for spatial permutation testing
 df.env.spin <- rbind(df.env[181:360,], df.env[1:180,]) #format df as left hemisphere -> right hemisphere for spin tests
 df.env.spin$GAM.env.tvalue[df.env.spin$SNR.mask == 0] <- NA #format data for spin tests by assigning NA to low SNR parcels, treating them like the medial wall
-df.env.spin$GAM.env.edu.tvalue[df.env.spin$SNR.mask == 0] <- NA
 
 df.env <- df.env %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
 ```
@@ -155,7 +154,7 @@ Percent of cortical regions showing significant age effects
 (sum(p.adjust(df.dev$Anova.age.pvalue, method=c("fdr")) < 0.05))/(nrow(df.dev))*100 
 ```
 
-Across-cortex effect size and (mean derivative) direction
+Across-cortex effect size and direction **Figure 1A**
 ```{r warning=FALSE, include=FALSE}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked")) + 
   theme_void() + 
@@ -166,16 +165,17 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), po
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/Brainmap_ageeffect.jpg", device = "pdf", dpi = 500, width = 3 , height = 2)
 ```
 
-## Age spline by sex interactions
+## Age by sex interactions
 
-Number of cortical regions show significance age*sex interactions 
+Number of cortical regions showing significance age*sex interactions 
 ```{r}
-sum(p.adjust(df.sex$GAM.agexsex.pvalue, method=c("fdr")) < 0.05) #FDR-corrected p-values age by sex interaction testing whether the age spline differs between males and females
+sum(p.adjust(df.sex$GAM.agexsex.pvalue, method=c("fdr")) < 0.05) #FDR-corrected p-values for age by sex interaction. The trajectories of regional age fits did not significantly differ between males and females
 ```
 
 
-## Cortical smooth functions
+## Cortical smooth functions 
 
+**Figure 1B**
 ```{r}
 gam.smoothestimates.glasser.lh <- gam.smoothestimates.glasser[33401:67200,]
 ggplot(gam.smoothestimates.glasser.lh,aes(age,est,group=index,color=GAM.age.partialR2)) + 
@@ -351,9 +351,9 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 # The development of intrinsic fMRI fluctuations is linked to the maturation of a key regulator of plasticity  
 
-## Spatial development
+## Cortical distribution of age effects
 
-Fluctuation amplitude age effects map
+Fluctuation amplitude age effects map **Figure 2A**
 ```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked"), hemisphere = c("right")) + 
   theme_void() + 
@@ -364,7 +364,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), po
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
-T1/T2 ratio age effects map
+T1/T2 ratio age effects map **Figure 2A**
 ```{r}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.partialR2), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -381,7 +381,7 @@ cor.test(df.dev$GAM.age.partialR2, df.dev$myelin.partialR2, method=c("spearman")
 perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$myelin.partialR2, perm.id.full,corr.type='spearman')
 ```
 
-Correlation plot
+Correlation plot **Figure 2B**
 ```{r}
 ggplot(df.dev, aes(x = myelin.partialR2, y = GAM.age.partialR2, fill = GAM.age.partialR2)) + 
 geom_point(aes(color = GAM.age.partialR2), shape = 21, size = 1.5) +
@@ -396,9 +396,9 @@ theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Ageeffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.68 , height = 2.175)
 ```
 
-## Temporal development
+## Temporal coordination
 
-Fluctuation amplitude age of decrease onset
+Fluctuation amplitude age of decrease onset **Figure 2C**
 ```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = minage.decrease), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -409,7 +409,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = minage.decrease), 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function_agedecrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
-T1/T2 ratio age of maximal increase
+T1/T2 ratio age of maximal increase **Figure 2C**
 ```{r}
 ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = myelin.maxdev), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -433,7 +433,7 @@ late.decrease.spin$minage.decrease[late.decrease.spin$minage.decrease < 8.5] <- 
 perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$myelin.maxdev, perm.id.full,corr.type='spearman')
 ```
 
-Correlation plot
+Correlation plot **Figure 2D**
 ```{r, message=F, warning=F}
 ggplot(late.decrease, aes(x = myelin.maxdev, y = minage.decrease, fill = minage.decrease)) + 
 geom_point(aes(color = minage.decrease), shape = 21, size = 1.2) +
@@ -449,9 +449,9 @@ scale_y_continuous(breaks=c(10, 12, 14, 16, 18, 20))
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.175)
 ```
 
-# The development of intrinsic fMRI fluctuations aligns with the hierarchical sensorimotor-association axis
+# Spatiotemporal variability in developmental trajectories is captured by the sensorimotor-association axis
 
-Sensorimotor-association axis
+Sensorimotor-association axis **Figure 3A**
 ```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = SA.axis), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
@@ -464,15 +464,15 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 ## Age effects along the S-A Axis
 
-Correlation (rho + p.spin) between fluctuation amplitude age effects and the sensorimotor-association axis
+Correlation (rho + p.spin) between fluctuation amplitude age effects and sensorimotor-association axis rank
 ```{r}
 cor.test(df.dev$GAM.age.partialR2, df.dev$SA.axis, method=c("spearman"))
 perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
 ```
 
-## Temporal change along the S-A Axis
+## Temporal development along the S-A Axis
 
-Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and the sensorimotor-association axis
+Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and sensorimotor-association axis rank
 ```{r}
 cor.test(df.dev$minage.decrease, df.dev$SA.axis, method=c("spearman"))
 perm.sphere.p(df.dev.spin$minage.decrease, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
@@ -480,7 +480,7 @@ cor.test(late.decrease$minage.decrease, late.decrease$SA.axis, method=c("spearma
 perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$SA.axis, perm.id.full,corr.type='spearman')
 ```
 
-Sensorimotor-association axis binned GAM smooths 
+Sensorimotor-association axis binned GAM smooths **Figure 3C**
 ```{r}
 gam.smoothestimates.glasser$age <- round(gam.smoothestimates.glasser$age, 3)
 
@@ -492,7 +492,7 @@ ggplot(data = meansmooth.bins, aes(x = age, y = est.mean, group = SA.axis.bin, c
   geom_line(size = 1.5) +
   scale_color_manual(values = c("#FFC228", "#FFCA4E", "#FFD16A", "#FFDA89", "#FFE6B0", "#D7BCDA", "#BE93C4", "#9859A4", "#863E95", "#6F1382")) +
   theme_classic() +
-  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n", color = "Sensorimotor-Association \nAxis Percentile Bin") +
+  labs(x = "\nAge", y = "Fluctuation Amplitude (zero centered)\n", color = "S-A axis deciles") +
   theme(legend.position = c(.585, 0.94), legend.direction = "horizontal", legend.text = element_text(size = 6), legend.key.size = unit(.3, "cm"), legend.title = element_text(size = 6, family = "Arial", color = c("black"))) +
   theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size = .22)) + scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
 
@@ -527,7 +527,7 @@ df.dev.spin <- left_join(df.dev.spin, PC1, by="label")
 perm.sphere.p(df.dev.spin$PC1, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
 ```
 
-Correlation plot
+Correlation plot **Figure 3B**
 ```{r, message=F}
 PC1 <- left_join(PC1, S.A.axis, by="label")
 ggplot(PC1, aes(x = SA.axis, y = PC1, fill = SA.axis)) + 
@@ -543,7 +543,7 @@ theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), 
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/AxisPC1_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
 ```
 
-Principal developmental axis brain map 
+Principal developmental axis brain map **Figure 3A**
 ```{r}
 ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill = PC1), position = c("stacked"), hemisphere = "right") + 
 theme_void() + 
@@ -590,7 +590,7 @@ cocor.dep.groups.overlap(
   n = 336, alternative = "two.sided", test = "hittner2003")
 ```
 
-# Neurodevelopment is hierarchical through adolescence 
+# Development is hierarchical through adolescence 
 
 ## Age-specific fluctuation amplitude derivatives
 
@@ -693,7 +693,7 @@ scale_y_continuous(limits = c(-.05, .055), oob = squish)
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
-Derivative by sensorimotor-association axis plot
+Regional developmental change across the sensorimotor-association axis **Figure 4A** 
 
 ```{r}
 derivative.colorbar <- c("#ff7e38", "#f29049", "#ffa25e", "#faab73", "#fabb73", "#ffcd94", "#ffd894", "#ffe6ab", "#ffe6ab", "#fff5de", "#ffffff", "#f79a97", "#f58682", "#EE6E69", "#C95665", "#BB4166", "#B72863", "#941348", "#7d0f65",  "#660c5f", "#4f0e4a")
@@ -712,7 +712,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 ```
 
-## Age-specific correlation between derivates and the S-A Axis
+## Age-specific correlations between developmental change and the S-A Axis
 
 Posterior derivative - sensorimotor-association axis correlations, N=10,000
 ```{r}
@@ -801,7 +801,7 @@ Maximal correlation value
 cor.credible.intervals %>% arrange(desc(SA.correlation)) %>% slice_head()
 ```
 
-### Sensorimotor-association axis development sliding window plot
+### Developmental alignment with the sensorimotor-association axis plot
 
 ```{r}
 cor.credible.intervals$max.corr.CI <- (cor.credible.intervals$age > age.max.corr.lower & cor.credible.intervals$age < age.max.corr.upper) #add a column that indicates whether each age is included in the age of maximal correlation credible interval (T/F)
@@ -812,6 +812,8 @@ cor.credible.intervals$zero.corr.CI <- (cor.credible.intervals$lower < 0 & cor.c
 cor.credible.intervals$zero.corr.window <- cor.credible.intervals$age*cor.credible.intervals$zero.corr.CI #add a column that only includes ages in the zero window
 cor.credible.intervals$zero.corr.window[cor.credible.intervals$zero.corr.window == 0] <- NA
 ```
+
+**Figure 4B**
 
 ```{r}
 ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
@@ -827,7 +829,7 @@ scale_y_continuous(breaks=c(0,0.2,0.4,0.6))
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_SAaxis_correlation_plot.pdf", device = "pdf", dpi = 500, width = 3.82 , height = 2.35)
 ```
 
-# Individual differences in intrinsic fMRI fluctuations are associated with differences in youth’s developmental environment
+# Environmental influences on intrinsic fMRI fluctuations diverge across the sensorimotor-association axis
 
 ## Significant associations between fluctuation amplitude and environmental factors
 
