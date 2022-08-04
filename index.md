@@ -19,7 +19,7 @@ Bart Larsen, Azeez Adebimpe, Maxwell A. Bertolero, Matthew Cieslak, Sydney Covit
 June 2021
 
 ### Current Project Status
-Manuscript in preparation
+In Submission
 
 ### Datasets
 RBC PNC-Health Exclude (primary) and LTN (sensitivity)
