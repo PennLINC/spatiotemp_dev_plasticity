@@ -28,8 +28,8 @@ RBC PNC-Health Exclude (primary) and LTN (sensitivity)
 <https://github.com/PennLINC/spatiotemp_dev_plasticity>
 
 ### Conference Presentations
-- Oral presentation *Developmental Refinement of Spontaneous Activity Varies Across Sensorimotor and Association Cortices* in the "From the Womb to Wisdom" oral session at The Organization for Human Brain Mapping Annual Meeting, June 2022. 
-- Oral presentation *Developmental Plasticity Unfolds Along a Sensorimotor-Association Gradient* delivered at the Gradients of Brain Organisation Workshop, Cambridge University, UK, June 2022. https://www.youtube.com/watch?v=g91vRtiZVVQ&ab_channel=GradientsofBrainOrganisationWorkshop
+- Oral presentation *Developmental Refinement of Spontaneous Activity Varies Across Sensorimotor and Association Cortices* given in the "From the Womb to Wisdom" oral session at The Organization for Human Brain Mapping Annual Meeting, June 2022. 
+- Talk entitled *Developmental Plasticity Unfolds Along a Sensorimotor-Association Gradient* delivered at the Gradients of Brain Organisation Workshop, Cambridge University, UK, June 2022. A recording of [the talk is available here](https://www.youtube.com/watch?v=g91vRtiZVVQ&ab_channel=GradientsofBrainOrganisationWorkshop).
 - Flash talk selected for the Flux Society Congress, September 2022.
 - Poster presented at The Society of Biological Psychiatry Annual Meeting, April 2022 as a Travel Awardee.
 
