@@ -4,7 +4,7 @@ library(gratia)
 library(tidyverse)
 library(dplyr)
 
-#### FIT GAM SMOOTH FUNCTION ####
+#### FIT GAM SMOOTH ####
 ##Function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariates)) per each region in atlas and save out statistics and derivative-based characteristics
 gam.fit.smooth <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, stats_only = FALSE){
   
@@ -99,7 +99,7 @@ gam.fit.smooth <- function(measure, atlas, dataset, region, smooth_var, covariat
     return(full.results)
 }
 
-#### PREDICT GAM SMOOTH FITTED VALUES FUNCTION ####
+#### PREDICT GAM SMOOTH FITTED VALUES ####
 ##Function to predict fitted values of a measure based on a fitted GAM smooth (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariates)) and a prediction df
 gam.smooth.predict <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, increments){
 
@@ -149,20 +149,20 @@ gam.smooth.predict <- function(measure, atlas, dataset, region, smooth_var, cova
   return(smooth.fit)
 }
 
-#### CALCULATE SMOOTH ESTIMATES FUNCTION ####
-##Function to estimate the zero-averaged gam smooth function 
-gam.estimate.smooth <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, increments){
+#### PREDICT GAM SMOOTH FITTED VALUES FOR A SPECIFIED VALUE OF AN INTERACTING COVARIATE ####
+##Function to predict fitted values of a measure for a given value of a covariate, using a varying coefficients smooth-by-linear covariate interaction
+gam.smooth.predict.covariateinteraction <- function(measure, atlas, dataset, region, smooth_var, int_var, int_var.predict, covariates, knots, set_fx = FALSE, increments){
   
-  #Fit the gam
+#Fit the gam
   dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
   gam.data <- get(dataname)
   parcel <- region
   region <- str_replace(region, "-", ".")
-  modelformula <- as.formula(sprintf("%s ~ s(%s, k = %s, fx = %s) + %s", region, smooth_var, knots, set_fx, covariates))
-  gam.model <- gam(modelformula, method = "REML", data = gam.data)
+  modelformula <- as.formula(sprintf("%1$s ~ s(%2$s, k=%3$s, fx=%4$s) + s(%2$s, by=%5$s, k=%3$s, fx=%4$s) + %6$s", region, smooth_var, knots, set_fx, int_var, covariates))
+  gam.model <- gam(modelformula, method = "REML", data=gam.data)
   gam.results <- summary(gam.model)
   
-  #Extract gam input data
+#Extract gam input data
   df <- gam.model$model #extract the data used to build the gam, i.e., a df of y + predictor values 
   
   #Create a prediction data frame
@@ -186,15 +186,62 @@ gam.estimate.smooth <- function(measure, atlas, dataset, region, smooth_var, cov
     }
   }
   pred <- thisPred %>% select(-init)
+  pred[,int_var] <- as.numeric(int_var.predict)
   
-  #Estimate the smooth trajectory 
+#Generate fitted (predicted) values based on the gam model and predication data frame
+  predicted.smooth <- fitted_values(object = gam.model, data = pred)
+  predicted.smooth$fitted.centered <- (predicted.smooth$fitted-gam.results$p.table[1,1]) #subtract the intercept from fitted values
+  predicted.smooth <- predicted.smooth %>% select(all_of(smooth_var), fitted, se, lower, upper, fitted.centered)
+  
+  return(predicted.smooth)
+}
+  
+#### CALCULATE SMOOTH ESTIMATES ####
+##Function to estimate the zero-averaged gam smooth function 
+gam.estimate.smooth <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, increments){
+  
+#Fit the gam
+  dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
+  gam.data <- get(dataname)
+  parcel <- region
+  region <- str_replace(region, "-", ".")
+  modelformula <- as.formula(sprintf("%s ~ s(%s, k = %s, fx = %s) + %s", region, smooth_var, knots, set_fx, covariates))
+  gam.model <- gam(modelformula, method = "REML", data = gam.data)
+  gam.results <- summary(gam.model)
+  
+#Extract gam input data
+  df <- gam.model$model #extract the data used to build the gam, i.e., a df of y + predictor values 
+  
+#Create a prediction data frame
+  np <- increments #number of predictions to make; predict at np increments of smooth_var
+  thisPred <- data.frame(init = rep(0,np)) #initiate a prediction df 
+  
+  theseVars <- attr(gam.model$terms,"term.labels") #gam model predictors (smooth_var + covariates)
+  varClasses <- attr(gam.model$terms,"dataClasses") #classes of the model predictors and y measure
+  thisResp <- as.character(gam.model$terms[[2]]) #the measure to predict
+  for (v in c(1:length(theseVars))) { #fill the prediction df with data for predictions. These data will be used to predict the output measure (y) at np increments of the smooth_var, holding other model terms constant
+    thisVar <- theseVars[[v]]
+    thisClass <- varClasses[thisVar]
+    if (thisVar == smooth_var) { 
+      thisPred[,smooth_var] = seq(min(df[,smooth_var],na.rm = T),max(df[,smooth_var],na.rm = T), length.out = np) #generate a range of np data points, from minimum of smooth term to maximum of smooth term
+    } else {
+      switch (thisClass,
+              "numeric" = {thisPred[,thisVar] = median(df[,thisVar])}, #make predictions based on median value
+              "factor" = {thisPred[,thisVar] = levels(df[,thisVar])[[1]]}, #make predictions based on first level of factor 
+              "ordered" = {thisPred[,thisVar] = levels(df[,thisVar])[[1]]} #make predictions based on first level of ordinal variable
+      )
+    }
+  }
+  pred <- thisPred %>% select(-init)
+  
+#Estimate the smooth trajectory 
   estimated.smooth <- smooth_estimates(object = gam.model, data = pred)
   estimated.smooth <- estimated.smooth %>% select(age, est)
   
   return(estimated.smooth)
 }
 
-#### POSTERIOR DISTRIBUTION SMOOTHS FUNCTION ####
+#### POSTERIOR DISTRIBUTION SMOOTHS ####
 ##Function to simulate the posterior distribution from a fitted GAM, calculate smooths for individual posterior draws, and return smooth max and min values + 95% credible intervals
 gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, draws, increments, return_draws = TRUE){
 
@@ -281,7 +328,7 @@ gam.posterior.smooths <- function(measure, atlas, dataset, region, smooth_var, c
     return(smooth.features)
 }
 
-#### DERIVATIVES FUNCTION ####
+#### DERIVATIVES ####
 ##Function to compute smooth derivatives for a main GAM model and for individual draws from the simulated posterior distribution
 gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covariates, knots, set_fx = FALSE, draws, increments, return_posterior_derivatives = TRUE){
   
@@ -303,7 +350,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
 #Extract gam input data
   df <- gam.model$model #extract the data used to build the gam, i.e., a df of y + predictor values 
   
-#Create a prediction data frame, used to estimate posterior model coefficients
+#Create a prediction data frame, used to estimate (posterior) model coefficients
   thisPred <- data.frame(init = rep(0,np)) 
   
   theseVars <- attr(gam.model$terms,"term.labels") #gam model predictors (smooth_var + covariates)
@@ -356,11 +403,118 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
     return(posterior.derivs.long)
 }
 
-#### FIT GAM FACTOR-SMOOTH INTERACTION FUNCTION #### 
+#### VARYING COVARIATE COEFFICIENTS ####
+##Function to estimate how the linear association between a predictor and y varies along a smooth function
+gam.varyingcoefficients <- function(measure, atlas, dataset, region, smooth_var, int_var, covariates, knots, set_fx = FALSE, increments, draws, return_posterior_coefficients = FALSE){
+
+#Set parameters
+  npd <- as.numeric(draws) #number of draws from the posterior distribution
+  np <- as.numeric(increments) #number of smooth_var increments to get derivatives at
+  UNCONDITIONAL <- FALSE #should we account for uncertainty when estimating smoothness parameters?
+  
+#Fit the gam
+  dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
+  gam.data <- get(dataname)
+  parcel <- region
+  region <- str_replace(region, "-", ".")
+  modelformula <- as.formula(sprintf("%1$s ~ s(%2$s, k=%3$s, fx=%4$s) + s(%2$s, by=%5$s, k=%3$s, fx=%4$s) + %6$s", region, smooth_var, knots, set_fx, int_var, covariates))
+  gam.model <- gam(modelformula, method = "REML", data=gam.data)
+  gam.results <- summary(gam.model)
+  
+#Extract gam input data
+  df <- gam.model$model #extract the data used to build the gam, i.e., a df of y + predictor values 
+  
+#Create a prediction data frame, used to estimate (posterior) model slopes (varying covariate coefficients)
+  theseVars <- attr(gam.model$terms,"term.labels") 
+  varClasses <- attr(gam.model$terms,"dataClasses") 
+  
+  #prediction df for int_var min at np smooth_var increments
+  pred.low <- data.frame(init = rep(0,np)) 
+  for (v in c(1:length(theseVars))) {
+    thisVar <- theseVars[[v]]
+    thisClass <- varClasses[thisVar]
+    if (thisVar == int_var) { 
+      pred.low[,int_var] <- (min(df[,int_var],na.rm = T))
+    } else if (thisVar == smooth_var) {
+      pred.low[,smooth_var] = seq(min(df[,smooth_var],na.rm = T),max(df[,smooth_var],na.rm = T), length.out = np)
+    } else {
+      switch (thisClass,
+              "numeric" = {pred.low[,thisVar] = median(df[,thisVar])}, #make predictions based on median value
+              "factor" = {pred.low[,thisVar] = levels(df[,thisVar])[[1]]}, #make predictions based on first level of factor 
+              "ordered" = {pred.low[,thisVar] = levels(df[,thisVar])[[1]]} #make predictions based on first level of ordinal variable
+      )}}
+  
+  #prediction df for int_var max at np smooth_var increments
+  pred.high <- data.frame(init = rep(0,np)) 
+  for (v in c(1:length(theseVars))) {
+    thisVar <- theseVars[[v]]
+    thisClass <- varClasses[thisVar]
+    if (thisVar == int_var) { 
+      pred.high[,int_var] <- (max(df[,int_var],na.rm = T))
+    } else if (thisVar == smooth_var) {
+      pred.high[,smooth_var] = seq(min(df[,smooth_var],na.rm = T),max(df[,smooth_var],na.rm = T), length.out = np)
+    } else {
+      switch (thisClass,
+              "numeric" = {pred.high[,thisVar] = median(df[,thisVar])}, #make predictions based on median value
+              "factor" = {pred.high[,thisVar] = levels(df[,thisVar])[[1]]}, #make predictions based on first level of factor 
+              "ordered" = {pred.high[,thisVar] = levels(df[,thisVar])[[1]]} #make predictions based on first level of ordinal variable
+      )}}
+  
+  pred <- rbind(pred.low, pred.high) #complete pred df 
+  pred <- pred %>% select(-init)
+  
+#Get effects (slopes) along the smooth function for the true model
+  if(return_posterior_coefficients == FALSE){
+  #varying coefficient slopes
+  predicted.values <- fitted_values(object = gam.model, data = pred) #predict y at min and mix int_var along the smooth function
+  predicted.values <- predicted.values %>% select(fitted, all_of(smooth_var), all_of(int_var))
+  colnames(predicted.values) <- c("fitted", "smooth.var", "int.var")
+  predicted.values$smooth.var <- round(predicted.values$smooth.var, 3)
+  
+  varyingcoeff.slopes <-  predicted.values %>% #calculate the effect of int_var on y  (slope; delta y/delta int_var) along the smooth function 
+      group_by(smooth.var) %>%
+      do(slope = diff(.$fitted)/diff(.$int.var)) %>%
+      unnest(cols = c(slope))
+  colnames(varyingcoeff.slopes) <- c(smooth_var, sprintf("%s.slope", int_var))  
+  }
+  
+#Estimate posterior distribution of effects (slopes) from simulated GAM posterior distribution
+  if(return_posterior_coefficients == TRUE){
+  Vb <- vcov(gam.model, unconditional = UNCONDITIONAL) #variance-covariance matrix of fitted gam coefficients
+  sims <- MASS::mvrnorm(npd, mu = coef(gam.model), Sigma = Vb) #simulated model coefficients for npd draws from the posterior
+  X0 <- predict(gam.model, newdata = pred, type = "lpmatrix") #get matrix of linear predictors that maps model parameters to the smooth fit (outcome measure scale)
+  predicted.values.posterior <- X0 %*% t(sims) #predicted/fitted values along smooth_var, i.e., posterior smooths
+  
+  predicted.values.posterior <- as.data.frame(predicted.values.posterior)
+  colnames(predicted.values.posterior) <- sprintf("draw%s",seq(from = 1, to = npd))
+  predicted.values.posterior <- cbind(as.numeric(pred[,smooth_var]), as.numeric(pred[,int_var]), predicted.values.posterior)
+  colnames(predicted.values.posterior)[1] <- c("smooth.var")
+  colnames(predicted.values.posterior)[2] <- c("int.var")
+  predicted.values.posterior$smooth.var <- round(predicted.values.posterior$smooth.var, 3)
+  
+  
+  varyingcoeff.slopes.CI = predicted.values.posterior %>% pivot_longer(cols = contains("draw"), names_to = "draw",values_to = "posterior.fitted") 
+  varyingcoeff.slopes.CI$int.var[varyingcoeff.slopes.CI$int.var == min(df[,int_var])] <- c("low")
+  varyingcoeff.slopes.CI$int.var[varyingcoeff.slopes.CI$int.var == max(df[,int_var])] <- c("high")
+  varyingcoeff.slopes.CI <- varyingcoeff.slopes.CI %>% pivot_wider(names_from = "int.var", values_from = "posterior.fitted") %>% mutate(slope = (high-low)/(max(df[,int_var] - min(df[,int_var])))) 
+  #calculate the effect of int_var on y  (slope; delta y/delta int_var) along the smooth function for all draws
+  
+  varyingcoeff.slopes.CI <- varyingcoeff.slopes.CI %>% select(smooth.var, draw, slope)
+  varyingcoeff.slopes.CI <- cbind(as.character(parcel), varyingcoeff.slopes.CI)
+  colnames(varyingcoeff.slopes.CI) <- c("label", smooth_var, "draw", sprintf("%s.slope", int_var))
+  }
+  
+  if(return_posterior_coefficients == FALSE)
+    return(varyingcoeff.slopes)
+  if(return_posterior_coefficients == TRUE)
+    return(varyingcoeff.slopes.CI)
+}
+  
+#### FIT GAM FACTOR-SMOOTH INTERACTION #### 
 ##Function to fit a GAM with a factor-smooth interaction and obtain statistics for the interaction term 
 gam.factorsmooth.interaction <- function(measure, atlas, dataset, region, smooth_var, int_var, covariates, knots, set_fx = FALSE){
   
-  #Fit the gam
+#Fit the gam
   dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
   gam.data <- get(dataname)
   parcel <- region
@@ -369,7 +523,7 @@ gam.factorsmooth.interaction <- function(measure, atlas, dataset, region, smooth
   gam.model <- gam(modelformula, method = "REML", data = gam.data)
   gam.results <- summary(gam.model)
   
-  #GAM statistics
+#GAM statistics
   #F value for the smooth term and GAM-based significance of the smooth term
   gam.int.F <- gam.results$s.table[2,3]
   gam.int.pvalue <- gam.results$s.table[2,4]
@@ -378,7 +532,7 @@ gam.factorsmooth.interaction <- function(measure, atlas, dataset, region, smooth
   return(interaction.stats)
 }
   
-#### FIT GAM SMOOTH WITH A COVARIATE OF INTEREST FUNCTION ####
+#### FIT GAM SMOOTH WITH A COVARIATE OF INTEREST ####
 ##Function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariate of interest + control covariates)) and save out statistics for the first covariate
 gam.fit.covariate <- function(measure, atlas, dataset, region, smooth_var, covariate.interest, covariates.noninterest, knots, set_fx = FALSE){
 

@@ -31,6 +31,7 @@ library(tidyr)
 library(cocor)
 extrafont::loadfonts()
 source("/cbica/projects/spatiotemp_dev_plasticity/software/rotate_parcellation/R/perm.sphere.p.R")
+source("/cbica/projects/spatiotemp_dev_plasticity/code/spatiotemp_dev_plasticity/gam_models/GAM_functions.R")
 ```
 
 Participant Fluctuation Amplitude Data
@@ -127,6 +128,13 @@ df.sex <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list)
 ```
 
 ```{r}
+gam.puberty.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_puberty_statistics_glasser.csv") #GAM pubertal stage statistics, generated with fitGAMs_fluctuationamplitude_pubertalstage.R
+ 
+gam.puberty.glasser <- merge(gam.puberty.glasser, SNR.mask, by="label", sort=F)
+gam.puberty.glasser <- gam.puberty.glasser %>% filter(SNR.mask != 0) 
+```
+
+```{r}
 gam.env.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_environment_statistics_glasser.csv") #GAM environment statistics, generated with fitGAMs_fluctuationamplitude_environment.R
 
 #create df.env with GAM results, S-A axis, and SNR mask
@@ -136,11 +144,36 @@ df.env <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list)
 #create df.env.spin formatted for spatial permutation testing
 df.env.spin <- rbind(df.env[181:360,], df.env[1:180,]) #format df as left hemisphere -> right hemisphere for spin tests
 df.env.spin$GAM.env.tvalue[df.env.spin$SNR.mask == 0] <- NA #format data for spin tests by assigning NA to low SNR parcels, treating them like the medial wall
+df.env.spin$GAM.env.edu.tvalue[df.env.spin$SNR.mask == 0] <- NA #format data for spin tests by assigning NA to low SNR parcels, treating them like the medial wall
 
 df.env <- df.env %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
 ```
 
-# Age-dependent changes in intrinsic fMRI fluctuations vary across the cortex
+```{r}
+gam.env.devstage <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_environment_devstage_statistics_glasser.csv") #GAM environment statistics in child, adolescent, and early adult subsamples, generated with fitGAMs_fluctuationamplitude_environment.R
+
+#create df.env.devstage with GAM results, S-A axis, and SNR mask
+df.list <- list(gam.env.devstage, S.A.axis, SNR.mask) #dfs to merge
+df.env.devstage <- Reduce(function(x,y) merge(x,y, all=TRUE, sort=F), df.list) 
+
+#create df.env.devstage.spin formatted for spatial permutation testing
+df.env.devstage.spin <- rbind(df.env.devstage[181:360,], df.env.devstage[1:180,]) #format df as left hemisphere -> right hemisphere for spin tests
+df.env.devstage.spin$GAM.env.tvalue.child[df.env.devstage.spin$SNR.mask == 0] <- NA #format data for spin tests by assigning NA to low SNR parcels, treating them like the medial wall
+df.env.devstage.spin$GAM.env.tvalue.adolescent[df.env.devstage.spin$SNR.mask == 0] <- NA 
+df.env.devstage.spin$GAM.env.tvalue.adult[df.env.devstage.spin$SNR.mask == 0] <- NA 
+
+df.env.devstage <- df.env.devstage %>% filter(SNR.mask != 0) #include only high SNR parcels (N=336) in analyses
+```
+
+```{r}
+gam.fitted.env <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_predictedfits_byenv.csv") #GAM predicted developmental trajectories for lower and higher factor scores, generated with fitGAMs_fluctuationamplitude_environment.R
+gam.fitted.env <- left_join(gam.fitted.env, S.A.axis, by="label", sort = F)
+gam.fitted.env <- left_join(gam.fitted.env, SNR.mask, by="label", sort = F)
+gam.fitted.env <- gam.fitted.env %>% filter(SNR.mask != 0) 
+gam.fitted.env$SA.axis.bin <- as.numeric(cut2(gam.fitted.env$SA.axis, g=10))
+```
+
+# Age-dependent changes in intrinsic fMRI activity vary across the cortex
 
 ## Significant age-related changes in fluctuation amplitude
 
@@ -162,7 +195,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), po
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
   theme(legend.text = element_text(family = "Arial", color = c("black")))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/Brainmap_ageeffect.jpg", device = "pdf", dpi = 500, width = 3 , height = 2)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/Brainmap_ageeffect.jpg", device = "pdf", dpi = 500, width = 3 , height = 2)
 ```
 
 ## Age by sex interactions
@@ -187,10 +220,10 @@ ggplot(gam.smoothestimates.glasser.lh,aes(age,est,group=index,color=GAM.age.part
   theme(axis.text = element_text(size=6, family = "Arial", color = c("black")), axis.title = element_text(size=6, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size=.22)) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45)) 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/Regional_agesmooths.jpg", device = "pdf", dpi = 500, width = 2.55 , height = 2.3)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/Regional_agesmooths.jpg", device = "pdf", dpi = 500, width = 2.55 , height = 2.3)
 ```
 
-### Region-specific developmental trajectories and derivatives
+## Region-specific developmental trajectories and derivatives
 
 **Region V1**
 
@@ -202,7 +235,7 @@ ggseg(.data = V1.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, col
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", na.value="transparent", direction = -1, limits = c(-0.07, .03), oob = squish) +
   theme(legend.position = "none")
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/V1_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/V1_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
 ```
 
 ```{r}
@@ -241,7 +274,7 @@ allplots <- list(scatterplot,derivplot)
 V1.plot <- cowplot::plot_grid(rel_heights = c(16,3.2), plotlist = allplots, align = "v", axis = "lr", ncol = 1)
 V1.plot 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/V1_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/V1_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)
 ```
 
 **Region p24pr**
@@ -254,7 +287,7 @@ ggseg(.data = p24pr.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, 
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", na.value="transparent", direction = -1, limits = c(-0.07, .03), oob = squish) +
   theme(legend.position = "none")
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/p24pr_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/p24pr_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
 ```
 
 ```{r}
@@ -293,7 +326,7 @@ allplots <- list(scatterplot,derivplot)
 p24pr.plot <- cowplot::plot_grid(rel_heights = c(16,3.2), plotlist = allplots, align = "v", axis = "lr", ncol = 1)
 p24pr.plot 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/p24pr_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)  
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/p24pr_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)  
 ```
 
 **Region IFSa**
@@ -306,7 +339,7 @@ ggseg(.data = IFSa.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, c
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", na.value="transparent", direction = -1, limits = c(-0.07, .03), oob = squish) +
   theme(legend.position = "none")
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/IFSa_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/IFSa_parcel.jpg", device = "pdf", dpi = 500, width = .5 , height = .5)
 ```
 
 ```{r}
@@ -345,11 +378,38 @@ allplots <- list(scatterplot,derivplot)
 IFSa.plot <- cowplot::plot_grid(rel_heights = c(16,3.2), plotlist = allplots, align = "v", axis = "lr", ncol = 1)
 IFSa.plot 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure1/IFSa_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)  
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure1/IFSa_smooth.jpg", device = "pdf", dpi = 500, width = 2.1 , height = 1.85)  
   
 ```
 
-# The development of intrinsic fMRI fluctuations is linked to the maturation of a key regulator of plasticity  
+## Pubertal stage effects
+
+Association between linear effects of pubertal stage (ordinal variable) and age effects
+```{r}
+cor.test(gam.puberty.glasser$GAM.puberty.linear.tvalue, df.dev$GAM.age.partialR2)
+```
+
+Number of regions where pubertal stage explains significant variance above and beyond age
+```{r}
+sum(p.adjust(gam.puberty.glasser$Anova.puberty.pvalue, method=c("fdr")) < 0.05)
+```
+
+Number of regions with significant age effects when controlling for pubertal stage
+```{r}
+gam.age.puberty.glasser <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/fluctuationamplitude_age_pubertycontrolled_statistics_glasser.csv") 
+gam.age.puberty.glasser <- merge(gam.age.puberty.glasser, SNR.mask, by="label", sort=F)
+gam.age.puberty.glasser <- gam.age.puberty.glasser %>% filter(SNR.mask != 0) 
+
+sum(p.adjust(gam.age.puberty.glasser$Anova.age.pvalue, method=c("fdr")) < 0.05)
+```
+
+Association between age effects when controlling and not controlling for pubertal stage
+```{r}
+cor.test(df.dev$GAM.age.partialR2, gam.age.puberty.glasser$GAM.age.partialR2)
+```
+
+
+# The development of intrinsic fMRI activity is linked to the maturation of a key regulator of plasticity
 
 ## Cortical distribution of age effects
 
@@ -361,7 +421,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), po
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
   theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure2/Brainmap_function.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 T1/T2 ratio age effects map **Figure 2A**
@@ -372,7 +432,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.partialR2), pos
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = 1, limits = c(0.0,0.3), oob = squish) +
   theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_myelin.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure2/Brainmap_myelin.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 Correlation (rho + p.spin) between fluctuation amplitude age effects and T1/T2 ratio age effects
@@ -393,7 +453,7 @@ theme_classic() +
 theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Ageeffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.68 , height = 2.175)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure2/Ageeffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.68 , height = 2.175)
 ```
 
 ## Temporal coordination
@@ -406,7 +466,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = minage.decrease), 
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10, 17.5), oob = squish) +
   theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_function_agedecrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure2/Brainmap_function_agedecrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 T1/T2 ratio age of maximal increase **Figure 2C**
@@ -417,7 +477,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = myelin.maxdev), po
   paletteer::scale_fill_paletteer_c("pals::ocean.matter", direction = -1, limits = c(10,17.5), oob = squish) +
   theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Brainmap_myelin_ageincrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure2/Brainmap_myelin_ageincrease.jpg", device = "pdf", dpi = 500, width = 2.4, height = 1.7)
 ```
 
 Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and T1/T2 ratio max age of increase
@@ -446,7 +506,7 @@ theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
 scale_y_continuous(breaks=c(10, 12, 14, 16, 18, 20))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.175)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure2/Temporaleffects_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.56 , height = 2.175)
 ```
 
 # Spatiotemporal variability in developmental trajectories is captured by the sensorimotor-association axis
@@ -459,7 +519,7 @@ ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = SA.axis), position
   scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 180) +
   theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/SAaxis.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure3/SAaxis.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
 ```
 
 ## Age effects along the S-A Axis
@@ -496,7 +556,7 @@ ggplot(data = meansmooth.bins, aes(x = age, y = est.mean, group = SA.axis.bin, c
   theme(legend.position = c(.585, 0.94), legend.direction = "horizontal", legend.text = element_text(size = 6), legend.key.size = unit(.3, "cm"), legend.title = element_text(size = 6, family = "Arial", color = c("black"))) +
   theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size = .22)) + scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/SAaxis_bin_smooths.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure3/SAaxis_bin_smooths.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
 ```
 
 ## Principal developmental gradient
@@ -540,7 +600,7 @@ theme_classic() +
 theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/AxisPC1_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure3/AxisPC1_correlationplot.jpg", device = "pdf", dpi = 500, width = 3.34 , height = 2.15)
 ```
 
 Principal developmental axis brain map **Figure 3A**
@@ -550,7 +610,7 @@ theme_void() +
 labs(fill = "") +
 scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.05, limits = c(-0.11,0.008), oob = squish) + theme(legend.text = element_blank())
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure3/PC1.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure3/PC1.jpg", device = "pdf", dpi = 500, width = 3.65, height = 2.95)
 ```
 
 Developmental PC1 correlation with anatomical, functional, and evolutionary cortical hierarchies
@@ -619,7 +679,7 @@ ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
   theme_void() + 
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish)
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age10_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Age10_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
 Age 10 derivative-axis correlation plot
@@ -636,7 +696,7 @@ theme(axis.text = element_blank(), axis.title = element_text(size = 6, family = 
 scale_y_continuous(limits = c(-.05, .055), oob = squish)
 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age10_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Age10_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
 Age 15 derivative map
@@ -647,7 +707,7 @@ ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
   theme_void() + 
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age15_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Age15_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
 Age 15 derivative-axis correlation plot
@@ -663,7 +723,7 @@ theme(legend.position = "none") +
 theme(axis.text = element_blank(), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .15), axis.ticks = element_line(size = .15)) +
 scale_y_continuous(limits = c(-.05, .055), oob = squish)
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age15_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Age15_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
 Age 20 derivative map
@@ -674,7 +734,7 @@ ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), pos
   theme_void() + 
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025,0.005), oob = squish)
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Age20_derivatives.jpg", device = "pdf", dpi = 500, width = 2.95 , height = 1.95)
 ```
 
 Age 20 derivative-axis correlation plot
@@ -690,7 +750,7 @@ theme(legend.position = "none") +
 theme(axis.text = element_blank(), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .15), axis.ticks = element_line(size = .15)) +
 scale_y_continuous(limits = c(-.05, .055), oob = squish)
  
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Age20_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Age20_correlationplot.jpg", device = "pdf", dpi = 500, width = 1.45 , height = 1.25)
 ```
 
 Regional developmental change across the sensorimotor-association axis **Figure 4A** 
@@ -708,7 +768,7 @@ ggplot(data=gam.derivatives.glasser,aes(x = age, y = SA.axis, group = index)) +
    theme(axis.text = element_text(size = 7, family = "Arial", color = c("black")), axis.title = element_text(size = 7, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22), legend.text = element_text(size = 6, family = "Arial", color = c("black"))) +
   scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0,.45))   
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_rank_age_plot.pdf", device = "pdf", dpi = 500, width = 3.7 , height = 4.9)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Derivative_rank_age_plot.pdf", device = "pdf", dpi = 500, width = 3.7 , height = 4.9)
 
 ```
 
@@ -754,7 +814,7 @@ theme_classic() +
 theme(axis.text.x = element_text(size = 6, family = "Arial", color = c("black")), axis.text.y = element_blank(), axis.title = element_blank(), axis.line = element_blank(), axis.ticks = element_blank()) +
 scale_x_continuous(breaks=c(14.5, 15, 15.5))   
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/AgeMaxCorr_histogram.pdf", device = "pdf", dpi = 500, width = 1.03 , height = 1.02)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/AgeMaxCorr_histogram.pdf", device = "pdf", dpi = 500, width = 1.03 , height = 1.02)
 ```
 
 ### Age of first null (zero) sensorimotor-association axis correlation: posterior median value + 95% credible interval
@@ -826,27 +886,40 @@ theme(axis.text = element_text(size = 7, family = "Arial", color = c("black")), 
 scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0, .1)) +
 scale_y_continuous(breaks=c(0,0.2,0.4,0.6)) 
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure4/Derivative_SAaxis_correlation_plot.pdf", device = "pdf", dpi = 500, width = 3.82 , height = 2.35)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure4/Derivative_SAaxis_correlation_plot.pdf", device = "pdf", dpi = 500, width = 3.82 , height = 2.35)
 ```
 
-# Environmental influences on intrinsic fMRI fluctuations diverge across the sensorimotor-association axis
+# Environmental influences on intrinsic fMRI activity vary across the sensorimotor-association axis during adolescence 
 
-## Significant associations between fluctuation amplitude and environmental factors
+```{r}
+environment <- read.csv("/cbica/projects/spatiotemp_dev_plasticity/sample_info/PNC/n1601_go1_environment_factor_scores_tymoore_20150909.csv")
+environment <- environment %>% select(-bblid)
+fluctuations.glasser.pnc <- merge(fluctuations.glasser.pnc, environment, by="scanid", sort = F)
+```
+
+Correlation between environment factor scores and age
+```{r}
+cor.test(fluctuations.glasser.pnc$age, fluctuations.glasser.pnc$envSES)
+```
+
+## Significant associations between fluctuation amplitude and environmental factor scores
 
 Number of cortical regions showing significant environment effects
-
 ```{r}
 sum(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05) 
 ```
 
-Percent of cortical regions showing significant environment effects
+* Number of cortical regions that still show a significant environment effect, after controlling for parental education 
+```{r}
+df.env %>% filter(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05 & p.adjust(df.env$Anova.env.edu.pvalue, method=c("fdr")) < 0.05) %>% nrow()
+```
 
+Percent of cortical regions showing significant environment effects
 ```{r}
 (sum(p.adjust(df.env$Anova.env.pvalue, method=c("fdr")) < 0.05))/(nrow(df.env))*100 
 ```
 
 Across-cortex environment effect size and direction
-
 ```{r, warning=F, message=F}
 ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), position = c("stacked")) + 
   theme_void() + 
@@ -854,24 +927,21 @@ ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), posit
   scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-5,5), oob=squish) +
   theme(legend.text = element_text(size = 6, family = "Arial", color = c("black")))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/Brainmap_enveffect.jpg", device = "pdf", dpi = 500, width = 3.05 , height = 2.25)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Brainmap_enveffect.jpg", device = "pdf", dpi = 500, width = 3.05 , height = 2.25)
 ```
 
 ## Correlation between environmental effects and the sensorimotor-association axis
 
+All regions
 ```{r}
-#all regions
 cor.test(df.env$GAM.env.tvalue, df.env$SA.axis, method=c("spearman"))
 perm.sphere.p(df.env.spin$GAM.env.tvalue, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
 ```
 
+* All regions, controlling for parental education
 ```{r}
-#significant regions
-df.env.spin$GAM.env.tvalue.significant <- df.env.spin$GAM.env.tvalue*(p.adjust(df.env.spin$Anova.env.pvalue, method=c("fdr")) < 0.05)
-df.env.spin$GAM.env.tvalue.significant[df.env.spin$GAM.env.tvalue.significant == 0] <- NA
-
-cor.test(df.env.spin$GAM.env.tvalue.significant, df.env.spin$SA.axis, method=c("spearman"))
-perm.sphere.p(df.env.spin$GAM.env.tvalue.significant, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
+cor.test(df.env$GAM.env.edu.tvalue, df.env$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.spin$GAM.env.edu.tvalue, df.env.spin$SA.axis, perm.id.full, corr.type='spearman')
 ```
 
 Correlation plot
@@ -888,7 +958,246 @@ geom_smooth(method = 'lm', se = TRUE, fill = alpha(c("gray70"),.7), col = "black
 theme_classic() + 
 theme(legend.position = "none") +
 theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size = .22), axis.ticks = element_line(size = .22)) +
-scale_y_continuous(breaks = c(-5, 0, 5))
+scale_y_continuous(breaks = c(-4,  0, 4,  8))
 
-ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/Neuron/Figure6/AxisEnv_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 1.7)
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/AxisEnv_correlationplot.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 1.7)
+```
+
+## Predicted developmental trajectories for 10th and 90th percentile factor scores
+
+```{r}
+SAaxismooths.by.env <- gam.fitted.env %>% group_by(envSES, age, SA.axis.bin) %>% do(est.mean = mean(.$fitted.centered)) %>% unnest(cols = c(est.mean)) #calculate the smooth fit for each S-A axis decile for low and high environment factor scores
+```
+
+```{r, warning=F, message=F}
+SA.colorvector <- c("#FFC228", "#FFCA4E", "#FFD16A", "#FFDA89", "#FFE6B0", "#D7BCDA", "#BE93C4", "#9859A4", "#863E95", "#6F1382")
+
+for(decile in c(1, 3, 6, 8, 10)){
+  
+  SAaxismooths.by.env.toplot <- SAaxismooths.by.env %>% filter(SA.axis.bin == decile)
+
+  ggplot(data = SAaxismooths.by.env.toplot, aes(x = age, y = est.mean, group = interaction(envSES, SA.axis.bin), linetype = envSES )) +
+  geom_line(size = .5, color = SA.colorvector[decile]) +
+  theme_classic() +
+  labs(x = "\nAge", y = "Predicted Fluctuation Amplitude\n") +
+  theme(legend.position = "none")  +
+  theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size=.22), axis.ticks = element_line(size = .22)) + scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0,.45)) +
+  scale_y_continuous(limits=c(-.06,.23), breaks=c(0,.1,.2))
+  
+  ggsave(filename = sprintf("/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/devtrajectories_env_decile%s.pdf", decile), device = "pdf", dpi = 500, width = 1.75 , height = 1.5) }
+```
+
+## Environmental effects in children, adolescent, and early adult samples
+
+Correlations between environment t-values across developmental stages
+```{r}
+cor.test(df.env.devstage$GAM.env.tvalue.child, df.env.devstage$GAM.env.tvalue.adolescent)
+```
+
+```{r}
+cor.test(df.env.devstage$GAM.env.tvalue.adolescent, df.env.devstage$GAM.env.tvalue.adult)
+```
+
+```{r}
+cor.test(df.env.devstage$GAM.env.tvalue.child, df.env.devstage$GAM.env.tvalue.adult)
+```
+
+Correlation between environmental effects and the sensorimotor-association axis in developmental stages
+
+*Children*
+```{r}
+cor.test(df.env.devstage$GAM.env.tvalue.child, df.env.devstage$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.devstage.spin$GAM.env.tvalue.child, df.env.devstage.spin$SA.axis, perm.id.full, corr.type='spearman')
+```
+
+*Adolescents*
+```{r}
+cor.test(df.env.devstage$GAM.env.tvalue.adolescent, df.env.devstage$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.devstage.spin$GAM.env.tvalue.adolescent, df.env.devstage.spin$SA.axis, perm.id.full, corr.type='spearman')
+```
+
+*Early Adults*
+```{r}
+cor.test(df.env.devstage$GAM.env.tvalue.adult, df.env.devstage$SA.axis, method=c("spearman"))
+perm.sphere.p(df.env.devstage.spin$GAM.env.tvalue.adult, df.env.devstage.spin$SA.axis, perm.id.full, corr.type='spearman')
+```
+
+Across-cortex environment effect size and direction
+
+*Children*
+```{r, warning=F, message=F}
+ggseg(.data = df.env.devstage, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue.child), position = c("stacked")) + 
+  theme_void() + 
+  labs(fill="Age Effect") +
+  scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-3,3), oob=squish) +
+  theme(legend.text = element_text(size = 6, family = "Arial", color = c("black")))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Brainmap_enveffect_child.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 2)
+```
+
+*Adolescents*
+```{r, warning=F, message=F}
+ggseg(.data = df.env.devstage, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue.adolescent), position = c("stacked")) + 
+  theme_void() + 
+  labs(fill="Age Effect") +
+  scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-3,3), oob=squish) +
+  theme(legend.text = element_text(size = 6, family = "Arial", color = c("black")))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Brainmap_enveffect_adolescent.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 2)
+```
+
+*Early Adults*
+```{r, warning=F, message=F}
+ggseg(.data = df.env.devstage, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue.adult), position = c("stacked")) + 
+  theme_void() + 
+  labs(fill="Age Effect") +
+  scale_fill_gradient2(low= "#F9AE76", mid = "white", high = "#952162", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = 0, limits=c(-3,3), oob=squish) +
+  theme(legend.text = element_text(size = 6, family = "Arial", color = c("black")))
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Brainmap_enveffect_adult.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 2)
+```
+
+## Age-specific correlations between environment effects and the S-A Axis 
+
+```{r}
+env.SAaxis.posteriorcorrs <- read.table("/cbica/projects/spatiotemp_dev_plasticity/FluctuationAmplitude/GAMRESULTS/SAaxis_environmenteffects_correlation_byage_glasser.csv", header = F, sep = ",") #get the regional derivative-regional axis rank correlation at each age for all draws from the posterior distribution
+colnames(env.SAaxis.posteriorcorrs) <- sprintf("draw%s",seq(from = 1, to = ncol(env.SAaxis.posteriorcorrs)))
+env.SAaxis.posteriorcorrs$age <- seq(min(fluctuations.glasser.pnc$age), max(fluctuations.glasser.pnc$age), length.out = 200)
+```
+
+### Age of maximal sensorimotor-association axis correlation: posterior median value + 95% credible interval
+
+```{r}
+age.max.corr <- env.SAaxis.posteriorcorrs %>% #find the age at which the correlation is largest for each draw
+    summarise(across(contains("draw"),
+                     .fns = function(x){
+                       round(env.SAaxis.posteriorcorrs$age[which.max(x)],4)
+                     }))
+age.max.corr <- t(age.max.corr)
+age.max.corr.median <- median(age.max.corr) #median age #bayes
+age.max.corr.CI <- quantile(age.max.corr, probs = c(0.025, 0.975)) #compute the credible interval based on all draws
+age.max.corr.lower <- age.max.corr.CI[[1]]
+age.max.corr.upper <- age.max.corr.CI[[2]]
+```
+
+```{r}
+age.max.corr.median
+```
+
+```{r}
+age.max.corr.CI
+```
+
+```{r}
+age.max.corr <- as.data.frame(age.max.corr)
+ggplot(age.max.corr, aes(x = V1)) + 
+geom_histogram(bins = 10, fill = "#FFE5B1") + 
+geom_vline(xintercept =  age.max.corr.median, color = "#ba275f", size = .5) +
+labs(x="\nAge", y="Posterior Draw Number\n") +
+theme_classic() +
+theme(axis.text.x = element_text(size = 6, family = "Arial", color = c("black")), axis.text.y = element_blank(), axis.title = element_blank(), axis.line = element_blank(), axis.ticks = element_blank()) +
+scale_x_continuous(breaks=c(14, 15, 16, 17))   
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/AgeMaxCorr_histogram.pdf", device = "pdf", dpi = 500, width = .7 , height = .7)
+```
+
+### Sensorimotor-association axis correlation value at each age: posterior median values + 95% credible interval
+
+```{r}
+env.SAaxis.posteriorcorrs <- env.SAaxis.posteriorcorrs %>% select(contains("draw"))
+
+env.SAaxis.mediancorr <- apply(env.SAaxis.posteriorcorrs, 1, function(x){median(x)}) #median correlation value at each age
+
+cor.credible.intervals.env <- apply(env.SAaxis.posteriorcorrs, 1, function(x){quantile(x, probs = c(0.025, 0.975))}) #compute the credible interval for the correlation value at each age based on all draws
+cor.credible.intervals.env <- t(cor.credible.intervals.env)
+cor.credible.intervals.env <- as.data.frame(cor.credible.intervals.env)
+cor.credible.intervals.env$age <- seq(min(fluctuations.glasser.pnc$age), max(fluctuations.glasser.pnc$age), length.out = 200)
+cor.credible.intervals.env$SA.correlation <- env.SAaxis.mediancorr 
+colnames(cor.credible.intervals.env) <- c("lower","upper","age","SA.correlation")
+```
+
+Maximal correlation value
+
+```{r}
+cor.credible.intervals.env %>% arrange(desc(SA.correlation)) %>% slice_head()
+```
+
+### Environment effects along the sensorimotor-association axis plot
+
+```{r}
+cor.credible.intervals.env$max.corr.CI <- (cor.credible.intervals.env$age > age.max.corr.lower & cor.credible.intervals.env$age < age.max.corr.upper) #add a column that indicates whether each age is included in the age of maximal correlation credible interval (T/F)
+cor.credible.intervals.env$max.cor.window <- cor.credible.intervals.env$age*cor.credible.intervals.env$max.corr.CI #add a column that only includes ages in this interval
+cor.credible.intervals.env$max.cor.window[cor.credible.intervals.env$max.cor.window == 0] <- NA
+```
+
+```{r}
+cor.credible.intervals.env$zero.corr.CI <- (cor.credible.intervals.env$lower < 0 & cor.credible.intervals.env$upper > 0) #add a column that indicates whether the credible interval for the correlation includes 0
+cor.credible.intervals.env$zero.corr.window <- cor.credible.intervals.env$age*cor.credible.intervals.env$zero.corr.CI #add a column that only includes ages in the zero window
+cor.credible.intervals.env$zero.corr.window[cor.credible.intervals.env$zero.corr.window == 0] <- NA
+cor.credible.intervals.env$zero.corr.window.young <- NA
+cor.credible.intervals.env$zero.corr.window.young[1:7] <- cor.credible.intervals.env$zero.corr.window[1:7]
+cor.credible.intervals.env$zero.corr.window.old <- NA
+cor.credible.intervals.env$zero.corr.window.old[174:200] <- cor.credible.intervals.env$zero.corr.window[174:200]
+```
+
+```{r}
+ggplot(cor.credible.intervals.env, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
+geom_line(size = .4) +
+geom_ribbon(alpha = .2, fill = c("grey30")) +
+labs(x="\nAge", y="Environment Effect Correlation with the S-A Axis\n") +
+geom_ribbon(aes(x = max.cor.window, y = SA.correlation), fill = "#F9AE76") +
+geom_ribbon(aes(x = zero.corr.window.young, y = SA.correlation), fill = "gray60") +
+geom_ribbon(aes(x = zero.corr.window.old, y = SA.correlation), fill = "gray60") +
+theme_classic() + 
+theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22)) +
+scale_x_continuous(breaks=c(8, 10, 12, 14, 16, 18, 20, 22), expand = c(0, .1)) +
+scale_y_continuous(breaks=c(-.2,0,0.2,0.4,0.6), limits=c(-.2,0.6)) 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/EnvEffect_SAaxis_age_correlations.jpg", device = "pdf", dpi = 500, width = 2.4 , height = 1.6)
+```
+
+## Region- and age-specific environment effect magnitude 
+
+**Region 3b**
+
+```{r warning=FALSE, include=FALSE}
+region.3 <- S.A.axis %>% filter(label == "rh_R_3b" | label == "rh_R_3a")
+ggseg(.data = region.3, atlas = "glasser", mapping=aes(fill=factor(SA.axis), colour=I("gray30"), size=I(.03)), position = c("stacked"), hemisphere = "right", view = "lateral" ) + 
+  theme_void() + 
+  labs(fill="") + scale_fill_manual(values=c("#ffbe2e", "#ffbe2e"), na.value = "transparent") 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/3b_parcel.pdf", device = "pdf", dpi = 500, width = 1.15 , height = 1.15)
+```
+
+```{r}
+rh_R_3b.fit <- gam.varyingcoefficients(measure = "fluctuations", atlas = "glasser", dataset = "pnc",region = "rh_R_3b", smooth_var = "age", int_var = "envSES", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, increments = 200, draws = 1, return_posterior_coefficients = FALSE)
+```
+
+**Region 9m**
+
+```{r warning=FALSE, include=FALSE}
+region.9m <- S.A.axis %>% filter(label == "rh_R_9m")
+ggseg(.data = region.9m, atlas = "glasser", mapping=aes(fill=factor(SA.axis), colour=I("gray30"), size=I(.03)), position = c("stacked"), hemisphere = "right", view = "medial" ) + 
+  theme_void() + 
+  labs(fill="") + scale_fill_manual(values=c("#9859A4"), na.value = "transparent") 
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/9m_parcel.pdf", device = "pdf", dpi = 500, width = 1.18 , height = 1.18)
+```
+
+```{r}
+rh_R_9m.fit <- gam.varyingcoefficients(measure = "fluctuations", atlas = "glasser", dataset = "pnc",region = "rh_R_9m", smooth_var = "age", int_var = "envSES", covariates = "sex + RMSmotion", knots = 3, set_fx = TRUE, increments = 200, draws = 1, return_posterior_coefficients = FALSE)
+```
+
+```{r}
+ggplot() +
+geom_line(data = rh_R_3b.fit, aes(x = age, y = envSES.slope), size = .75, color = c("#FFD16A")) +
+geom_line(data = rh_R_9m.fit, aes(x = age, y = envSES.slope), size = .75, color = c("#9859A4")) +
+labs(x="\nAge", y="Regional Environment Effect\n") +
+theme_classic() + 
+theme(axis.text = element_text(size = 6, family = "Arial", color = c("black")), axis.title = element_text(size = 6, family = "Arial", color = c("black")), axis.line = element_line(size =.22), axis.ticks = element_line(size = .22)) +
+scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0,.45))  +
+scale_y_continuous(breaks=c(-.02,0,0.02)) +
+geom_hline(yintercept = 0, linetype = "dotted", color = "grey70", size = .4)
+
+ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Regional_ageresolved_effects.jpg", device = "pdf", dpi = 500, width = 1.9 , height = 1.6)
 ```
