@@ -188,7 +188,7 @@ Percent of cortical regions showing significant age effects
 ```
 
 Across-cortex effect size and direction **Figure 1A**
-```{r warning=FALSE, include=FALSE}
+```{r echo=TRUE, warning=FALSE}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2), position = c("stacked")) + 
   theme_void() + 
   labs(fill="") +
@@ -227,7 +227,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 **Region V1**
 
-```{r warning=FALSE, include=FALSE}
+```{r, warning=F, message=F}
 V1.dev <- df.dev %>% filter(label == "rh_R_V1")
 ggseg(.data = V1.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, colour=I("#ED8B65"), size=I(.03)), position = c("stacked"), hemisphere = "right", view = "medial" ) + 
   theme_void() + 
@@ -279,7 +279,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 **Region p24pr**
 
-```{r warning=FALSE, include=FALSE}
+```{r, warning=F, message=F}
 p24pr.dev <- df.dev %>% filter(label == "rh_R_p24pr")
 ggseg(.data = p24pr.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, colour=I("#D54D55"), size=I(.03)), position = c("stacked"), hemisphere = "right", view = "medial" ) + 
   theme_void() + 
@@ -331,7 +331,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 
 **Region IFSa**
 
-```{r warning=FALSE, include=FALSE}
+```{r, warning=F, message=F}
 IFSa.dev <- df.dev %>% filter(label == "lh_L_IFSa")
 ggseg(.data = IFSa.dev, atlas = "glasser", mapping=aes(fill=GAM.age.partialR2, colour=I("#381043"), size=I(.03)), position = c("stacked"), hemisphere = "left", view = "lateral" ) + 
   theme_void() + 
@@ -425,7 +425,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 T1/T2 ratio age effects map **Figure 2A**
-```{r}
+```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping=aes(fill=myelin.partialR2), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
   labs(fill="") +
@@ -442,7 +442,7 @@ perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$myelin.partialR2, perm.
 ```
 
 Correlation plot **Figure 2B**
-```{r}
+```{r, message=F}
 ggplot(df.dev, aes(x = myelin.partialR2, y = GAM.age.partialR2, fill = GAM.age.partialR2)) + 
 geom_point(aes(color = GAM.age.partialR2), shape = 21, size = 1.5) +
 paletteer::scale_color_paletteer_c("pals::ocean.matter", direction = -1, limits = c(-0.07, .03), oob = squish) +
@@ -470,7 +470,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 T1/T2 ratio age of maximal increase **Figure 2C**
-```{r}
+```{r, warning=F, message=F}
 ggseg(.data = df.dev, atlas = "glasser", mapping = aes(fill = myelin.maxdev), position = c("stacked"), hemisphere = "right") + 
   theme_void() + 
   labs(fill = "") +
@@ -483,11 +483,11 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and T1/T2 ratio max age of increase
 ```{r}
 #All regions
-cor.test(df.dev$minage.decrease, df.dev$myelin.maxdev, method=c("spearman"))
+cor.test(df.dev$minage.decrease, df.dev$myelin.maxdev, method=c("spearman"), exact=F)
 perm.sphere.p(df.dev.spin$minage.decrease, df.dev.spin$myelin.maxdev, perm.id.full,corr.type='spearman')
 #Age of decrease onset > 8.5
 late.decrease <- df.dev %>% filter(minage.decrease > 8.5)
-cor.test(late.decrease$minage.decrease, late.decrease$myelin.maxdev, method=c("spearman"))
+cor.test(late.decrease$minage.decrease, late.decrease$myelin.maxdev, method=c("spearman"), exact=F)
 late.decrease.spin <- df.dev.spin
 late.decrease.spin$minage.decrease[late.decrease.spin$minage.decrease < 8.5] <- NA
 perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$myelin.maxdev, perm.id.full,corr.type='spearman')
@@ -534,9 +534,9 @@ perm.sphere.p(df.dev.spin$GAM.age.partialR2, df.dev.spin$SA.axis, perm.id.full,c
 
 Correlation (rho + p.spin) between fluctuation amplitude age of decrease onset and sensorimotor-association axis rank
 ```{r}
-cor.test(df.dev$minage.decrease, df.dev$SA.axis, method=c("spearman"))
+cor.test(df.dev$minage.decrease, df.dev$SA.axis, method=c("spearman"), exact=F)
 perm.sphere.p(df.dev.spin$minage.decrease, df.dev.spin$SA.axis, perm.id.full,corr.type='spearman')
-cor.test(late.decrease$minage.decrease, late.decrease$SA.axis, method=c("spearman"))
+cor.test(late.decrease$minage.decrease, late.decrease$SA.axis, method=c("spearman"), exact=F)
 perm.sphere.p(late.decrease.spin$minage.decrease, late.decrease.spin$SA.axis, perm.id.full,corr.type='spearman')
 ```
 
@@ -604,7 +604,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 Principal developmental axis brain map **Figure 3A**
-```{r}
+```{r, warning=F, message=F}
 ggseg(.data = PC1, atlas = "glasser", mapping=aes(fill = PC1), position = c("stacked"), hemisphere = "right") + 
 theme_void() + 
 labs(fill = "") +
@@ -672,7 +672,7 @@ gam.derivatives.glasser$age <- round(gam.derivatives.glasser$age, 5)
 ```
 
 Age 10 derivative map
-```{r, warning=F, message=F, error=F}
+```{r, warning=F, message=F}
 age10.derivs <- gam.derivatives.glasser %>% filter(age == 10.03015)
 
 ggseg(.data = age10.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
@@ -683,7 +683,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 Age 10 derivative-axis correlation plot
-```{r}
+```{r, message=F}
 ggplot(age10.derivs, aes(x = SA.axis, y = derivative, fill = derivative)) + 
 geom_point(aes(color = derivative), shape = 21, size = .1) +
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
@@ -700,7 +700,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 Age 15 derivative map
-```{r, warning=F, message=F, error=F}
+```{r, warning=F, message=F}
 age15.derivs <- gam.derivatives.glasser %>% filter(age == 15.02429)
 
 ggseg(.data = age15.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
@@ -711,7 +711,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 Age 15 derivative-axis correlation plot
-```{r}
+```{r, message=F}
 ggplot(age15.derivs, aes(x = SA.axis, y = derivative, fill = derivative)) + 
 geom_point(aes(color = derivative), shape = 21, size = .1) +
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
@@ -727,7 +727,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 Age 20 derivative map
-```{r, warning=F, message=F, error=F}
+```{r, warning=F, message=F}
 age20.derivs <- gam.derivatives.glasser %>% filter(age == 20.01843)
 
 ggseg(.data = age20.derivs, atlas = "glasser", mapping=aes(fill=derivative), position = c("stacked"), hemisphere = "right") + 
@@ -738,7 +738,7 @@ ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_
 ```
 
 Age 20 derivative-axis correlation plot
-```{r}
+```{r, message=F}
 ggplot(age20.derivs, aes(x = SA.axis, y = derivative, fill = derivative)) + 
 geom_point(aes(color = derivative), shape = 21, size = .1) +
   scale_fill_gradient2(low= "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "fill", name = NULL, midpoint = -0.012, limits = c(-0.025, 0.005), oob = squish) +
@@ -902,7 +902,7 @@ Correlation between environment factor scores and age
 cor.test(fluctuations.glasser.pnc$age, fluctuations.glasser.pnc$envSES)
 ```
 
-## Significant associations between fluctuation amplitude and environmental factor scores
+## Significant associations between fluctuation amplitude and environment factor scores
 
 Number of cortical regions showing significant environment effects
 ```{r}
@@ -930,7 +930,7 @@ ggseg(.data = df.env, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue), posit
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Brainmap_enveffect.jpg", device = "pdf", dpi = 500, width = 3.05 , height = 2.25)
 ```
 
-## Correlation between environmental effects and the sensorimotor-association axis
+## Correlation between environment effects and the sensorimotor-association axis
 
 All regions
 ```{r}
@@ -987,7 +987,7 @@ for(decile in c(1, 3, 6, 8, 10)){
   ggsave(filename = sprintf("/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/devtrajectories_env_decile%s.pdf", decile), device = "pdf", dpi = 500, width = 1.75 , height = 1.5) }
 ```
 
-## Environmental effects in children, adolescent, and early adult samples
+## Environment effects in children, adolescent, and early adult samples
 
 Correlations between environment t-values across developmental stages
 ```{r}
@@ -1002,7 +1002,7 @@ cor.test(df.env.devstage$GAM.env.tvalue.adolescent, df.env.devstage$GAM.env.tval
 cor.test(df.env.devstage$GAM.env.tvalue.child, df.env.devstage$GAM.env.tvalue.adult)
 ```
 
-Correlation between environmental effects and the sensorimotor-association axis in developmental stages
+Correlation between environment effects and the sensorimotor-association axis in each developmental stage
 
 *Children*
 ```{r}
@@ -1016,7 +1016,7 @@ cor.test(df.env.devstage$GAM.env.tvalue.adolescent, df.env.devstage$SA.axis, met
 perm.sphere.p(df.env.devstage.spin$GAM.env.tvalue.adolescent, df.env.devstage.spin$SA.axis, perm.id.full, corr.type='spearman')
 ```
 
-*Early Adults*
+*Young Adults*
 ```{r}
 cor.test(df.env.devstage$GAM.env.tvalue.adult, df.env.devstage$SA.axis, method=c("spearman"))
 perm.sphere.p(df.env.devstage.spin$GAM.env.tvalue.adult, df.env.devstage.spin$SA.axis, perm.id.full, corr.type='spearman')
@@ -1046,7 +1046,7 @@ ggseg(.data = df.env.devstage, atlas = "glasser", mapping=aes(fill=GAM.env.tvalu
 ggsave(filename = "/cbica/projects/spatiotemp_dev_plasticity/figures/Manuscript_Figures/NatNeuro/Figure6/Brainmap_enveffect_adolescent.jpg", device = "pdf", dpi = 500, width = 2.5 , height = 2)
 ```
 
-*Early Adults*
+*Young Adults*
 ```{r, warning=F, message=F}
 ggseg(.data = df.env.devstage, atlas = "glasser", mapping=aes(fill=GAM.env.tvalue.adult), position = c("stacked")) + 
   theme_void() + 
