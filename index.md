@@ -1,6 +1,6 @@
 <br>
 <br>
-# Intrinsic Activity Develops Along a Sensorimotor-Association Cortical Axis in Youth
+# Intrinsic Activity Development Unfolds Along a Sensorimotor-Association Cortical Axis in Youth
 *Animal studies of neurodevelopmental plasticity have shown that intrinsic brain activity evolves from prevalent and synchronized to suppressed and sparse as plasticity declines and the cortex matures. Leveraging resting-state functional MRI data from 1033 individuals (8-23 years), we reveal that this stereotyped refinement of intrinsic activity occurs during human development and provides evidence for a cortical gradient of developmental plasticity during youth. Declines in the amplitude of intrinsic activity were initiated heterochronously across regions and coupled to the maturation of intracortical myelination—a key limiter of plasticity. Spatiotemporal variability in regional developmental trajectories was systematically patterned along a hierarchical, sensorimotor-association cortical axis from ages 8 to 18. The sensorimotor-association axis furthermore captured regionally-distinct associations between individuals’ neighborhood environments and intrinsic activity amplitude: findings suggest that youth from socioeconomically disadvantaged environments exhibit diminished differentiation of plasticity across this axis during mid-adolescence. Our results uncover a hierarchical axis of neurodevelopment and offer insight into the spatiotemporal progression of cortical plasticity in humans. Continued discovery of temporal axes of development across human’s multi-decade maturational course will provide evidence of how plasticity is distributed across brain regions at different developmental stages. Such insights into the temporal patterning of plasticity may help to guide interventions in youth that align with each child’s neurotemporal context.* 
 
 ### Project Lead
@@ -13,13 +13,13 @@ Theodore D. Satterthwaite
 Bart Larsen
 
 ### Collaborators 
-Bart Larsen, Azeez Adebimpe, Maxwell A. Bertolero, Matthew Cieslak, Sydney Covitz, Yong Fan, Raquel E. Gur, Ruben C. Gur, David R. Roalf, Russell T. Shinohara, Dani S. Bassett, Theodore D. Satterthwaite
+Bart Larsen, Jakob Seidlitz, Azeez Adebimpe, Aaron F. Alexander-Bloch, Dani S. Bassett, Maxwell A. Bertolero, Matthew Cieslak, Sydney Covitz, Yong Fan, Raquel E. Gur, Ruben C. Gur, David R. Roalf, Russell T. Shinohara, Allyson P. Mackey, Theodore D. Satterthwaite
 
 ### Project Start Date
 June 2021
 
 ### Current Project Status
-In Submission
+Published in Nature Neuroscience (2023) as **Intrinsic activity development unfolds along a sensorimotor–association cortical axis in youth**
 
 ### Datasets
 RBC PNC-Health Exclude (primary) and LTN (sensitivity)
